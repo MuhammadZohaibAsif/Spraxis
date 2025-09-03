@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "891648014654",
+    "project_id": "spraxis-9f373",
+    "storage_bucket": "spraxis-9f373.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:891648014654:android:4e5e8dc2c5cb057251146f",
+        "android_client_info": {
+          "package_name": "com.spraxis"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD00mbySF_3XQAzzhEWFZzX-Mv7Ij2Kb98"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
