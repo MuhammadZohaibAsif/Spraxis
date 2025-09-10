@@ -1,14 +1,16 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-
-const OnBoarding = () => {
+import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import OnBoardingScreens from './OnBoardingScreens';
+const OnBoarding1 = () => {
   return (
-    <View>
-      <Text>onBoarding1</Text>
-    </View>
-  )
-}
+    <OnBoardingScreens
+      illustration={require('../assets/illustrations1.png')}
+      slider={require('../assets/Slider1.png')}
+      title="Confidence in your words"
+      subtitle="With conversation-based learning, you'll be talking from lesson one"
+    />
+  );
+};
 
-export default OnBoarding
+export default OnBoarding1;
 
-const styles = StyleSheet.create({})
