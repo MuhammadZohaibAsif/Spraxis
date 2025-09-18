@@ -11,7 +11,7 @@ import React from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
 import { hp, moderateScale, wp } from '../src/utilis/responsive';
 
-const Complete4 = () => {
+const Complete5 = () => {
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
@@ -24,47 +24,57 @@ const Complete4 = () => {
             color="#fff"
           />
         </TouchableOpacity>
-        <Text style={styles.headertext}>Complete 4/7</Text>
+        <Text style={styles.headertext}>Complete 5/7</Text>
       </View>
 
       <View style={styles.createacctext}>
-        <Text style={styles.protext}>How old are you?</Text>
+        <Text style={styles.protext}>
+          How much time do you want to learn German?
+        </Text>
       </View>
       <View style={styles.listcontainer}>
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>Under 18</Text>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons//5mints.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>5min/Day</Text>
         </View>
 
         {/* ////////////////////////////////////////////// */}
 
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>18 - 24</Text>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons//15mints.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>15min/Day</Text>
         </View>
         {/* ////////////////////////////////////////////// */}
 
         {/* ////////////////////////////////////////////// */}
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>25 - 34</Text>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons//30mints.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>30min/Day</Text>
         </View>
-
         {/* ////////////////////////////////////////////// */}
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>35 - 44</Text>
-        </View>
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>45 - 54</Text>
-        </View>
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>55 - 64</Text>
-        </View>
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>65 or older</Text>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons//60mints.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>60min/Day</Text>
         </View>
       </View>
 
@@ -75,7 +85,7 @@ const Complete4 = () => {
   );
 };
 
-export default Complete4;
+export default Complete5;
 
 const styles = StyleSheet.create({
   parentcontainer: {
@@ -123,6 +133,7 @@ const styles = StyleSheet.create({
     height: hp('8%'),
   },
   imagecontainer: {
+    // backgroundColor: '#D6185D',
     backgroundColor: '#ffffff',
     borderRadius: 25,
     width: wp('12.5%'),
@@ -132,7 +143,7 @@ const styles = StyleSheet.create({
     marginLeft: wp('4%'),
   },
   imagestyling: {
-    width: wp('7%'),
+    width: wp('7.3%'),
     height: hp('3.5%'),
     alignSelf: 'center',
   },

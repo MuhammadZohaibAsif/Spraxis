@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/Entypo';
 import { hp, moderateScale, wp } from '../src/utilis/responsive';
 
 const Complete1 = () => {
+ 
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />

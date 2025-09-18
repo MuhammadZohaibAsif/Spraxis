@@ -11,7 +11,7 @@ import React from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
 import { hp, moderateScale, wp } from '../src/utilis/responsive';
 
-const Complete4 = () => {
+const Complete6 = () => {
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
@@ -24,48 +24,45 @@ const Complete4 = () => {
             color="#fff"
           />
         </TouchableOpacity>
-        <Text style={styles.headertext}>Complete 4/7</Text>
+        <Text style={styles.headertext}>Complete 6/7</Text>
       </View>
 
       <View style={styles.createacctext}>
-        <Text style={styles.protext}>How old are you?</Text>
+        <Text style={styles.protext}>How did you hear about "SPRAXIS"?</Text>
       </View>
       <View style={styles.listcontainer}>
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>Under 18</Text>
+          <Text style={styles.itemstext}>Friends/Family</Text>
         </View>
 
         {/* ////////////////////////////////////////////// */}
 
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>18 - 24</Text>
+          <Text style={styles.itemstext}>Play Store</Text>
         </View>
         {/* ////////////////////////////////////////////// */}
 
         {/* ////////////////////////////////////////////// */}
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>25 - 34</Text>
+          <Text style={styles.itemstext}>Youtube</Text>
         </View>
 
         {/* ////////////////////////////////////////////// */}
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>35 - 44</Text>
+          <Text style={styles.itemstext}>TV</Text>
         </View>
 
         {/* ////////////////////////////////////////////// */}
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>45 - 54</Text>
+          <Text style={styles.itemstext}>Podcast</Text>
         </View>
 
         {/* ////////////////////////////////////////////// */}
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>55 - 64</Text>
+          <Text style={styles.itemstext}>Website Ad</Text>
         </View>
 
         {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>65 or older</Text>
-        </View>
       </View>
 
       <TouchableOpacity style={styles.nextbutton}>
@@ -75,7 +72,7 @@ const Complete4 = () => {
   );
 };
 
-export default Complete4;
+export default Complete6;
 
 const styles = StyleSheet.create({
   parentcontainer: {

@@ -11,7 +11,7 @@ import React from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
 import { hp, moderateScale, wp } from '../src/utilis/responsive';
 
-const Complete4 = () => {
+const Complete7 = () => {
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
@@ -24,50 +24,40 @@ const Complete4 = () => {
             color="#fff"
           />
         </TouchableOpacity>
-        <Text style={styles.headertext}>Complete 4/7</Text>
+        <Text style={styles.headertext}>Complete 7/7</Text>
       </View>
 
       <View style={styles.createacctext}>
-        <Text style={styles.protext}>How old are you?</Text>
+        <Text style={styles.protext}>Course Overview</Text>
+        <Text style={styles.subcourseoverview}>
+          Learn listening, speaking, reading and writing in german
+        </Text>
       </View>
-      <View style={styles.listcontainer}>
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>Under 18</Text>
+      <View style={styles.createacctext}>
+        <Text style={styles.protext}>Course Content :</Text>
+      </View>
+      <View style={styles.contentcontainer}>
+        <View style={styles.subcontentcontainer}>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons/word.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>9000+</Text>
+          <Text style={styles.itemsubtext}>Words</Text>
         </View>
-
-        {/* ////////////////////////////////////////////// */}
-
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>18 - 24</Text>
-        </View>
-        {/* ////////////////////////////////////////////// */}
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>25 - 34</Text>
-        </View>
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>35 - 44</Text>
-        </View>
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>45 - 54</Text>
-        </View>
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>55 - 64</Text>
-        </View>
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>65 or older</Text>
+        <View style={styles.subcontentcontainer}>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons/sentences.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>2100+</Text>
+          <Text style={styles.itemsubtext}>Sentences</Text>
         </View>
       </View>
-
       <TouchableOpacity style={styles.nextbutton}>
         <Text style={styles.nexttext}>Next</Text>
       </TouchableOpacity>
@@ -75,7 +65,7 @@ const Complete4 = () => {
   );
 };
 
-export default Complete4;
+export default Complete7;
 
 const styles = StyleSheet.create({
   parentcontainer: {
@@ -104,43 +94,57 @@ const styles = StyleSheet.create({
   },
   protext: {
     marginTop: hp('4.5%'),
-    marginBottom: hp('3%'),
+    marginBottom: hp('1.5%'),
     width: wp('84%'),
     fontFamily: 'fredoka-Medium',
-    textAlign: 'center',
     fontSize: moderateScale(21),
   },
-  listcontainer: {
+  subcourseoverview: {
+    marginBottom: hp('2%'),
+    width: wp('84%'),
+    fontFamily: 'fredoka-Medium',
+    fontSize: moderateScale(16),
+    opacity: 0.65,
+  },
+  contentcontainer: {
     flex: 1,
-  },
-  listitemcontainer: {
-    marginTop: hp('2%'),
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#e0e5e7',
-    marginHorizontal: wp('7%'),
-    borderRadius: 18,
-    height: hp('8%'),
+    justifyContent: 'center',
   },
+  subcontentcontainer: {
+    width: wp('40%'),
+    height: hp('17%'),
+    backgroundColor: '#e0e5e7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 17,
+    marginHorizontal: wp('2%'),
+    opacity: 0.8,
+  },
+
   imagecontainer: {
     backgroundColor: '#ffffff',
     borderRadius: 25,
     width: wp('12.5%'),
     height: hp('6%'),
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: wp('4%'),
+    justifyContent: 'space-evenly',
+    alignSelf: 'center',
   },
   imagestyling: {
     width: wp('7%'),
     height: hp('3.5%'),
     alignSelf: 'center',
   },
+
   itemstext: {
+    marginTop: hp('1.5%'),
     fontFamily: 'fredoka-Medium',
-    fontSize: moderateScale(18),
-    opacity: 0.85,
-    paddingLeft: wp('4%'),
+    fontSize: moderateScale(14),
+  },
+  itemsubtext: {
+    fontFamily: 'fredoka-Medium',
+    opacity: 0.75,
+    paddingTop: hp('0.3%'),
   },
   nextbutton: {
     alignItems: 'center',

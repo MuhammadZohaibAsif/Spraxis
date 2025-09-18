@@ -8,10 +8,12 @@ import {
   Image,
 } from 'react-native';
 import React from 'react';
+import CountryFlag from 'react-native-country-flag';
+
 import Icon from 'react-native-vector-icons/Entypo';
 import { hp, moderateScale, wp } from '../src/utilis/responsive';
 
-const Complete4 = () => {
+const Settings = () => {
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
@@ -24,58 +26,84 @@ const Complete4 = () => {
             color="#fff"
           />
         </TouchableOpacity>
-        <Text style={styles.headertext}>Complete 4/7</Text>
+        <Text style={styles.headertext}>Settings</Text>
       </View>
 
-      <View style={styles.createacctext}>
-        <Text style={styles.protext}>How old are you?</Text>
-      </View>
       <View style={styles.listcontainer}>
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>Under 18</Text>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons/editprofile.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>Edit Profile</Text>
         </View>
 
         {/* ////////////////////////////////////////////// */}
 
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>18 - 24</Text>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons/settings.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>Settings</Text>
         </View>
         {/* ////////////////////////////////////////////// */}
 
         {/* ////////////////////////////////////////////// */}
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>25 - 34</Text>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons/mylanguage.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>My Language</Text>
         </View>
 
         {/* ////////////////////////////////////////////// */}
+
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>35 - 44</Text>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons/invitefriends.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>Invite Friend</Text>
+        </View>
+        {/* ////////////////////////////////////////////// */}
+
+        <View style={styles.listitemcontainer}>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons/help.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>Help</Text>
         </View>
 
         {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>45 - 54</Text>
-        </View>
 
-        {/* ////////////////////////////////////////////// */}
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>55 - 64</Text>
-        </View>
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>65 or older</Text>
+          <View style={styles.imagecontainer}>
+            <Image
+              style={styles.imagestyling}
+              source={require('../assets/icons/getaccess.png')}
+            />
+          </View>
+          <Text style={styles.itemstext}>Get Access</Text>
         </View>
       </View>
-
-      <TouchableOpacity style={styles.nextbutton}>
-        <Text style={styles.nexttext}>Next</Text>
-      </TouchableOpacity>
     </View>
   );
 };
 
-export default Complete4;
+export default Settings;
 
 const styles = StyleSheet.create({
   parentcontainer: {
@@ -90,6 +118,7 @@ const styles = StyleSheet.create({
     height: hp('12%'),
     paddingBottom: hp('1.8%'),
     paddingRight: wp('30%'),
+    marginBottom: wp('6%'),
   },
   headertext: {
     color: '#ffffff',
@@ -105,7 +134,6 @@ const styles = StyleSheet.create({
   protext: {
     marginTop: hp('4.5%'),
     marginBottom: hp('3%'),
-    width: wp('84%'),
     fontFamily: 'fredoka-Medium',
     textAlign: 'center',
     fontSize: moderateScale(21),
@@ -135,6 +163,7 @@ const styles = StyleSheet.create({
     width: wp('7%'),
     height: hp('3.5%'),
     alignSelf: 'center',
+    // backgroundColor:"green"
   },
   itemstext: {
     fontFamily: 'fredoka-Medium',

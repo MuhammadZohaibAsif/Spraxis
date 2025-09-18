@@ -11,7 +11,7 @@ import React from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
 import { hp, moderateScale, wp } from '../src/utilis/responsive';
 
-const Complete4 = () => {
+const SetGoal1 = () => {
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
@@ -24,47 +24,40 @@ const Complete4 = () => {
             color="#fff"
           />
         </TouchableOpacity>
-        <Text style={styles.headertext}>Complete 4/7</Text>
+        <Text style={styles.headertext}>Set Goal</Text>
       </View>
 
       <View style={styles.createacctext}>
-        <Text style={styles.protext}>How old are you?</Text>
+        <Text style={styles.protext}>Which level do you want to reach?</Text>
       </View>
+
+      {/* //////////////////////////////////////////////////////////////////// */}
+
       <View style={styles.listcontainer}>
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>Under 18</Text>
+          <Text style={styles.itemstext}>Basic</Text>
+          <Text style={styles.subitemstext}>
+            Use familiar everyday expressions, such as introductions,details
+            about yourself and your family
+          </Text>
         </View>
 
-        {/* ////////////////////////////////////////////// */}
+        {/* //////////////////////////////////////////////////////////////////// */}
 
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>18 - 24</Text>
-        </View>
-        {/* ////////////////////////////////////////////// */}
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>25 - 34</Text>
+          <Text style={styles.itemstext}>Independent</Text>
+          <Text style={styles.subitemstext}>
+     Understand the main points when communications in everyday situations and can share your options.
+          </Text>
         </View>
 
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>35 - 44</Text>
-        </View>
+        {/* //////////////////////////////////////////////////////////////////// */}
 
-        {/* ////////////////////////////////////////////// */}
         <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>45 - 54</Text>
-        </View>
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>55 - 64</Text>
-        </View>
-
-        {/* ////////////////////////////////////////////// */}
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>65 or older</Text>
+          <Text style={styles.itemstext}>Proficient</Text>
+          <Text style={styles.subitemstext}>
+            Communicate effectively and flexibly in most social, academic and professional contexts and understand indirect meaning.
+          </Text>
         </View>
       </View>
 
@@ -75,7 +68,7 @@ const Complete4 = () => {
   );
 };
 
-export default Complete4;
+export default SetGoal1;
 
 const styles = StyleSheet.create({
   parentcontainer: {
@@ -107,7 +100,6 @@ const styles = StyleSheet.create({
     marginBottom: hp('3%'),
     width: wp('84%'),
     fontFamily: 'fredoka-Medium',
-    textAlign: 'center',
     fontSize: moderateScale(21),
   },
   listcontainer: {
@@ -115,32 +107,24 @@ const styles = StyleSheet.create({
   },
   listitemcontainer: {
     marginTop: hp('2%'),
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#e0e5e7',
     marginHorizontal: wp('7%'),
     borderRadius: 18,
-    height: hp('8%'),
+    paddingVertical: wp('3%'),
   },
-  imagecontainer: {
-    backgroundColor: '#ffffff',
-    borderRadius: 25,
-    width: wp('12.5%'),
-    height: hp('6%'),
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: wp('4%'),
-  },
-  imagestyling: {
-    width: wp('7%'),
-    height: hp('3.5%'),
-    alignSelf: 'center',
-  },
+
   itemstext: {
+    marginBottom: hp('1%'),
     fontFamily: 'fredoka-Medium',
-    fontSize: moderateScale(18),
+    fontSize: moderateScale(16),
     opacity: 0.85,
     paddingLeft: wp('4%'),
+  },
+  subitemstext: {
+    fontFamily: 'fredoka-Medium',
+    fontSize: moderateScale(14),
+    opacity: 0.65,
+    paddingHorizontal: wp('4%'),
   },
   nextbutton: {
     alignItems: 'center',
