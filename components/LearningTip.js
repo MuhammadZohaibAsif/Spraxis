@@ -65,10 +65,7 @@ const styles = StyleSheet.create({
   icon: {
     paddingHorizontal: wp('5.7%'),
   },
-  crosstext: {
-    fontSize: moderateScale(23),
-    color: '#ffffff',
-  },
+
   congratsView: {
     flex: 1,
     justifyContent: 'center',

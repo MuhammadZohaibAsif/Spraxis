@@ -25,11 +25,12 @@ import Settings from './components/Settings';
 import InviteFriend from './components/InviteFriend';
 import Profile from './components/Profile';
 import SplashScreen from './components/splashscreen';
+import FeaturedCourses from './components/FeaturedCourses';
 
 const App = () => {
   return (
     <>
-      <Profile />
+    <FeaturedCourses/>
     </>
   );
 };
