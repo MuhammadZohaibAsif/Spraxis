@@ -71,6 +71,10 @@ const Complete4 = () => {
       <TouchableOpacity style={styles.nextbutton}>
         <Text style={styles.nexttext}>Next</Text>
       </TouchableOpacity>
+      <Image
+        style={styles.subscription}
+        source={require('../assets/computer.png')}
+      />
     </View>
   );
 };
@@ -155,5 +159,10 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(17),
+  },
+  subscription: {
+    height: hp('7%'),
+    width: wp('18%'),
+    marginBottom: hp('1.5%'),
   },
 });

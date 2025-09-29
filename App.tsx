@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import React from 'react';
 import OnBoarding1 from './components/OnBoarding1';
 import OnBoarding2 from './components/OnBoarding2';
@@ -26,15 +26,30 @@ import InviteFriend from './components/InviteFriend';
 import Profile from './components/Profile';
 import SplashScreen from './components/splashscreen';
 import FeaturedCourses from './components/FeaturedCourses';
+import PremiumSubscription from './components/PremiumSubscription';
+import Activity from './components/Activity';
+import WeeklyChart from './components/WeeklyChartGifted';
+import WeeklyChartGifted from './components/WeeklyChartGifted';
+import Que7 from './components/Que7';
+import Que8 from './components/Que8';
+import HomePage from './components/HomePage';
+import Progress from './components/Progress';
+import Task from './components/Task';
 
 const App = () => {
   return (
     <>
-    <FeaturedCourses/>
+      <Task />
     </>
   );
 };
 
 export default App;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+  },
+});
