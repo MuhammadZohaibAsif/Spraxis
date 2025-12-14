@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Spraxis</string>
+     <string name="facebook_app_id">1520540009388529</string>
+    <string name="fb_login_protocol_scheme">fb1520540009388529</string>
+    <string name="facebook_client_token">11f79590b96940a84143946ace2bb593</string>
 </resources>

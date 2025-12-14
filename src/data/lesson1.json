@@ -1,0 +1,56 @@
+
+{
+  "title": "Greetings",
+  "level": 1,
+
+  "sentence": {
+    "german": "Guten Morgen, ich möchte Deutsch lernen.",
+    "english": "Good morning, I want to learn German."
+  },
+
+  "words": [
+    { "german": "Guten", "english": "Good" },
+    { "german": "Morgen", "english": "Morning" },
+    { "german": "ich", "english": "I" },
+    { "german": "möchte", "english": "want to" },
+    { "german": "Deutsch", "english": "German" },
+    { "german": "lernen", "english": "learn" }
+  ],
+
+  "quizzes": {
+    "pairQuiz": [
+      {
+        "pairs": [
+          { "german": "Guten", "english": "Good" },
+          { "german": "Morgen", "english": "Evening" },
+          { "german": "lernen", "english": "Play" }
+        ],
+        "correctPair": { "german": "Guten", "english": "Good" }
+      }
+    ],
+
+    "writingQuiz": [
+      {
+        "question": "Morning",
+        "correctAnswer": "Morgen"
+      },
+      {
+        "question": "I want",
+        "correctAnswer": "Ich möchte"
+      },
+      {
+        "question": "learn German",
+        "correctAnswer": "Deutsch lernen"
+      }
+    ],
+
+    "sentenceQuiz": [
+      {
+        "sentence": "Guten Morgen, ich möchte Deutsch lernen.",
+        "underline": "Morgen",
+        "options": ["Morning", "Evening", "Night"],
+        "correctAnswer": "Morning"
+      }
+    ]
+  }
+}

@@ -12,7 +12,28 @@
           "package_name": "com.spraxis"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "891648014654-5e41sbmn3a215ies7rd79p36d1lbp18p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.spraxis",
+            "certificate_hash": "bd6e8f1414aee9bd18f79224dd0906af5b92e83a"
+          }
+        },
+        {
+          "client_id": "891648014654-p90k3m3glhmeomluk5m0i46cqugsalp4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.spraxis",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "891648014654-2lqbnh613qntugu4r1l0ba58pkat9n56.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyD00mbySF_3XQAzzhEWFZzX-Mv7Ij2Kb98"
@@ -20,7 +41,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "891648014654-2lqbnh613qntugu4r1l0ba58pkat9n56.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
