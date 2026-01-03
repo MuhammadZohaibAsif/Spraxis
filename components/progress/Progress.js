@@ -13,7 +13,7 @@ import Icon2 from 'react-native-vector-icons/MaterialIcons';
 import Icon from 'react-native-vector-icons/Entypo';
 import Icon1 from 'react-native-vector-icons/Ionicons';
 
-import { hp, moderateScale, wp } from '../src/utilis/responsive';
+import { hp, moderateScale, wp } from '../../src/utilis/responsive';
 import { BarChart } from 'react-native-gifted-charts';
 
 const Progress = () => {

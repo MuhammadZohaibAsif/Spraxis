@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import React from 'react';
-import { hp, moderateScale, wp } from '../src/utilis/responsive';
+import { hp, moderateScale, wp } from '../../src/utilis/responsive';
 import Icon from 'react-native-vector-icons/Entypo';
 import Icon2 from 'react-native-vector-icons/Ionicons';
 import CountryFlag from 'react-native-country-flag';
@@ -68,7 +68,7 @@ const Profile = () => {
           <View style={styles.imagecontainer}>
             <Image
               style={styles.imagestyling2}
-              source={require('../assets/icons//clock.png')}
+              source={require('../../assets/icons/clock.png')}
             />
           </View>
           <View>

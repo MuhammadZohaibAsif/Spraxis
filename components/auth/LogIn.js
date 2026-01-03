@@ -123,7 +123,7 @@ const LogIn = () => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={googleLogin}>
+        <TouchableOpacity onPress={() => googleLogin()}>
           <View style={styles.sublinkingcontainer}>
             <Image
               style={styles.iconsimage}

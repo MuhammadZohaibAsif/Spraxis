@@ -15,7 +15,7 @@ import SignUp from '../../components/auth/SignUp';
 import SignUp2 from '../../components/auth/SignUp2';
 import HomePage from '../../components/main/HomePage';
 
-
+import BottomTabs from './BottomTabs';
 import Complete1 from '../../components/complete/Complete1';
 import Complete1o from '../../components/complete/Complete1o'; 
 
@@ -54,14 +54,14 @@ const AuthStack = () => (
   </Stack.Navigator>
 );
 
-const HomeStack = () => (
-  <Stack.Navigator
-    initialRouteName="HomePage"
-    screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
-  >
-    <Stack.Screen name="HomePage" component={HomePage} />
-  </Stack.Navigator>
-);
+// const HomeStack = () => (
+//   <Stack.Navigator
+//     initialRouteName="HomePage"
+//     screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
+//   >
+//     <Stack.Screen name="HomePage" component={HomePage} />
+//   </Stack.Navigator>
+// );
 
 const AppNavigator = () => {
   const { user, initializing } = useContext(AuthContext);
@@ -76,7 +76,10 @@ const AppNavigator = () => {
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       const seen = await AsyncStorage.getItem('hasSeenOnboarding');
-      setHasSeenOnboarding(seen === 'false');
+      // setHasSeenOnboarding(seen === 'false');
+      setHasSeenOnboarding(seen === 'true');
+
+
     };
     checkOnboardingStatus();
   }, []);
@@ -95,7 +98,7 @@ const AppNavigator = () => {
         {showSplash ? (
           <SplashScreen />
         ) : user ? (
-          <HomeStack />
+          <BottomTabs />
         ) : hasSeenOnboarding ? (
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Login" component={LogIn} />
