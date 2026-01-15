@@ -7,17 +7,65 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
+import firestore from '@react-native-firebase/firestore';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
-import { hp, moderateScale, wp } from '../src/utilis/responsive';
-
+import { hp, moderateScale, wp } from '../../src/utilis/responsive';
+import { useContext } from 'react';
+import { AuthContext } from '../../src/context/AuthContext';
 const LessonCompleted = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { language, lessonId } = route.params || {};
+  const { user } = useContext(AuthContext);
+
+  const markLessonCompleted = async () => {
+    const uid = user?._user?.uid || user?.uid;
+    if (!uid || !language || !lessonId) return;
+
+    try {
+      const userRef = firestore().collection('users').doc(uid);
+      const userSnap = await userRef.get();
+      if (!userSnap.exists) return;
+
+      const profile = userSnap.data()?.profile || {};
+      const learningLanguages = profile.learningLanguages || [];
+
+      console.log('Updating progress for:', language, lessonId);
+
+      const updatedLanguages = learningLanguages.map(lang => {
+        if (lang.name.toLowerCase() === language.toLowerCase()) {
+          return {
+            ...lang,
+            progress: {
+              ...lang.progress,
+              [lessonId]: {
+                completed: true,
+                completedAt: firestore.Timestamp.now(),
+              },
+            },
+          };
+        }
+        return lang;
+      });
+
+      await userRef.update({
+        'profile.learningLanguages': updatedLanguages,
+      });
+
+      console.log('Lesson marked completed ✅');
+    } catch (error) {
+      console.log('Firestore update failed ❌', error);
+    }
+  };
+
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
 
       <View style={styles.headercontainer}>
-        <TouchableOpacity>
+        {/* <TouchableOpacity>
           <Icon
             style={styles.icon}
             name="chevron-left"
@@ -27,19 +75,29 @@ const LessonCompleted = () => {
         </TouchableOpacity>
         <TouchableOpacity>
           <Icon style={styles.icon} name="cross" size={26} color="#fff" />
-        </TouchableOpacity>{' '}
+        </TouchableOpacity> */}
       </View>
       <View style={styles.congratsView}>
         <Image
           style={styles.congratsimage}
-          source={require('../assets/Completed.png')}
+          source={require('../../assets/Completed.png')}
         />
         <Text style={styles.congratstext}>Lesson Completed</Text>
         <Text style={styles.subcongratstext}>
-          You have completed lesson 1 of the Dutch language course
+          You have completed {lessonId} of the {language} language course
         </Text>
       </View>
-      <TouchableOpacity style={styles.nextbutton}>
+      <TouchableOpacity
+        style={styles.nextbutton}
+        onPress={async () => {
+          await markLessonCompleted(); // 🔥 THIS WAS MISSING
+
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'BottomTabs' }],
+          });
+        }}
+      >
         <Text style={styles.nexttext}>Back to home</Text>
       </TouchableOpacity>
     </View>
@@ -82,6 +140,7 @@ const styles = StyleSheet.create({
     marginTop: hp('3%'),
     fontSize: moderateScale(24),
     fontFamily: 'Fredoka-Bold',
+    color: '#000000',
   },
   subcongratstext: {
     fontFamily: 'fredoka-Medium',

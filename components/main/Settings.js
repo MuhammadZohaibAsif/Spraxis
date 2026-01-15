@@ -11,7 +11,7 @@ import React from 'react';
 import CountryFlag from 'react-native-country-flag';
 
 import Icon from 'react-native-vector-icons/Entypo';
-import { hp, moderateScale, wp } from '../src/utilis/responsive';
+import { hp, moderateScale, wp } from '../../src/utilis/responsive';
 
 const Settings = () => {
   return (
@@ -34,7 +34,7 @@ const Settings = () => {
           <View style={styles.imagecontainer}>
             <Image
               style={styles.imagestyling}
-              source={require('../assets/icons/editprofile.png')}
+              source={require('../../assets/icons/editprofile.png')}
             />
           </View>
           <Text style={styles.itemstext}>Edit Profile</Text>
@@ -45,7 +45,7 @@ const Settings = () => {
           <View style={styles.imagecontainer}>
             <Image
               style={styles.imagestyling}
-              source={require('../assets/icons/settings.png')}
+              source={require('../../assets/icons/settings.png')}
             />
           </View>
           <Text style={styles.itemstext}>Settings</Text>
@@ -55,7 +55,7 @@ const Settings = () => {
           <View style={styles.imagecontainer}>
             <Image
               style={styles.imagestyling}
-              source={require('../assets/icons/mylanguage.png')}
+              source={require('../../assets/icons/mylanguage.png')}
             />
           </View>
           <Text style={styles.itemstext}>My Language</Text>
@@ -66,7 +66,7 @@ const Settings = () => {
           <View style={styles.imagecontainer}>
             <Image
               style={styles.imagestyling}
-              source={require('../assets/icons/invitefriends.png')}
+              source={require('../../assets/icons/invitefriends.png')}
             />
           </View>
           <Text style={styles.itemstext}>Invite Friend</Text>
@@ -76,7 +76,7 @@ const Settings = () => {
           <View style={styles.imagecontainer}>
             <Image
               style={styles.imagestyling}
-              source={require('../assets/icons/help.png')}
+              source={require('../../assets/icons/help.png')}
             />
           </View>
           <Text style={styles.itemstext}>Help</Text>
@@ -87,7 +87,7 @@ const Settings = () => {
           <View style={styles.imagecontainer}>
             <Image
               style={styles.imagestyling}
-              source={require('../assets/icons/getaccess.png')}
+              source={require('../../assets/icons/getaccess.png')}
             />
           </View>
           <Text style={styles.itemstext}>Get Access</Text>

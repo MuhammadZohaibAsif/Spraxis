@@ -10,42 +10,104 @@ import {
 import React, { useState, useEffect } from 'react';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CountryFlag from 'react-native-country-flag';
-
 import Icon from 'react-native-vector-icons/Entypo';
-
 import { hp, moderateScale, wp } from '../../src/utilis/responsive';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
+
 const Task = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [dates, setDates] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [languageMap, setLanguageMap] = useState({});
+  const TASK_COLORS = ['#e87121', '#5BA890', '#3954bc'];
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const snap = await firestore().collection('languages').get();
 
+        const map = {};
+        snap.forEach(doc => {
+          map[doc.id] = doc.data();
+          // example:
+          // map['arabic'] = { flag: 'SA', code: 'ar', name: 'Arabic' }
+        });
 
-  const [tasks, setTasks] = useState([
-    {
-      id: '1',
-      title: 'German Language',
-      details: 'Remaining 5 Tasks',
-      hour: 2,
-      color: '#5BA890',
-      date: new Date(2025, 8, 29).toDateString(), 
-      flag: 'de',
-    },
-    {
-      id: '2',
-      title: 'Spanish Language',
-      details: 'Remaining 20 Tasks',
-      hour: 5,
-      color: '#F76400',
-      date: new Date(2025, 8, 29).toDateString(),
-      flag: 'es',
-    },
-  ]);
+        setLanguageMap(map);
+      } catch (e) {
+        console.log('Language fetch error:', e);
+      }
+    };
 
-  
+    fetchLanguages();
+  }, []);
+
+  const getIncompleteLessonsCount = (learningLanguages, goalLanguage) => {
+    const langKey = goalLanguage?.toLowerCase().trim();
+
+    const langProgress = learningLanguages.find(
+      l => l.name?.toLowerCase().trim() === langKey,
+    );
+
+    if (!langProgress || !langProgress.progress) return 0;
+
+    return Object.values(langProgress.progress).filter(
+      lesson => lesson.completed !== true,
+    ).length;
+  };
+
+  useEffect(() => {
+    if (Object.keys(languageMap).length === 0) return;
+
+    const unsubscribe = auth().onAuthStateChanged(async user => {
+      if (!user) return;
+
+      const snap = await firestore().collection('users').doc(user.uid).get();
+      const goals = snap.data()?.profile?.goals || [];
+      const learningLanguages = snap.data()?.profile?.learningLanguages || [];
+      const tasksArray = goals.map((goal, index) => {
+        // const langData = languageMap[goal.language];
+
+        const langKey = goal.language?.toLowerCase().trim();
+        const langData = languageMap[langKey];
+
+        const incompleteCount = getIncompleteLessonsCount(
+          learningLanguages,
+          goal.language,
+        );
+        return {
+          hour: timeToHour(goal.time),
+          date: selectedDate.toDateString(),
+          title: langData?.name || goal.language,
+          details: `${incompleteCount}   Incomplete Lessons`,
+          flag: langData?.flag || 'US', // fallback
+          // color: '#5BA890',
+          // color: '#F76400',
+          // color: '#4C6EF5',
+          color: TASK_COLORS[index % TASK_COLORS.length],
+        };
+      });
+
+      setTasks(tasksArray);
+    });
+
+    return () => unsubscribe();
+  }, [selectedDate, languageMap]);
+
+  const timeToHour = time => {
+    const [timePart, modifier] = time.split(' ');
+    let [hour] = timePart.split(':');
+    hour = parseInt(hour, 10);
+
+    if (modifier === 'PM' && hour !== 12) hour += 12;
+    if (modifier === 'AM' && hour === 12) hour = 0;
+
+    return hour;
+  };
+  /////////////////////////////////////////////////////////
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
-
-
   const generateWeek = centerDate => {
     let arr = [];
     for (let i = -4; i <= 4; i++) {
@@ -64,7 +126,7 @@ const Task = () => {
 
   const handleConfirm = date => {
     setSelectedDate(date);
-    setDates(generateWeek(date)); 
+    setDates(generateWeek(date));
     hideDatePicker();
   };
 
@@ -135,9 +197,9 @@ const Task = () => {
           renderItem={renderItem}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.scrollcontent}
-          initialScrollIndex={Math.floor(dates.length / 2)} 
+          initialScrollIndex={Math.floor(dates.length / 2)}
           getItemLayout={(data, index) => ({
-            length: wp('13%') + wp('3%'), 
+            length: wp('13%') + wp('3%'),
             offset: (wp('13%') + wp('3%')) * index,
             index,
           })}
@@ -158,9 +220,7 @@ const Task = () => {
               </Text>
 
               {!taskForThisHour && (
-                <Text style={styles.dottedLineText}>
-                  {'- '.repeat(27)}{' '}
-                </Text>
+                <Text style={styles.dottedLineText}>{'- '.repeat(27)} </Text>
               )}
 
               {taskForThisHour && (
@@ -183,7 +243,7 @@ const Task = () => {
 
                     <View style={{ marginLeft: wp('3%') }}>
                       <Text style={styles.taskTitle}>
-                        {taskForThisHour.title}
+                        {taskForThisHour.title} Language
                       </Text>
                       <Text style={styles.taskDetails}>
                         {taskForThisHour.details}
@@ -225,7 +285,6 @@ const styles = StyleSheet.create({
     paddingRight: wp('14%'),
   },
 
-
   datecontainer: {
     backgroundColor: '#d3d3d364',
     paddingVertical: hp('3.5%'),
@@ -248,7 +307,6 @@ const styles = StyleSheet.create({
     height: hp('3.8%'),
     opacity: 0.5,
   },
-
 
   scrollcontent: {
     paddingHorizontal: wp('5%'),
@@ -322,7 +380,7 @@ const styles = StyleSheet.create({
   flagWraper: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff', 
+    backgroundColor: '#fff',
     width: wp('11.5%'),
     height: hp('5.5%'),
     borderRadius: 25,
@@ -334,15 +392,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 50,
     height: 50,
-    borderRadius: 25, 
-    backgroundColor: '#fff', 
+    borderRadius: 25,
+    backgroundColor: '#fff',
   },
 
   flagInner: {
     width: 33,
     height: 33,
-    borderRadius: 18, 
-    overflow: 'hidden', 
+    borderRadius: 18,
+    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -350,7 +408,7 @@ const styles = StyleSheet.create({
   flagImg: {
     width: '100%',
     height: '100%',
-    borderRadius: 18, 
+    borderRadius: 18,
   },
   taskTitle: {
     fontSize: moderateScale(16),
@@ -362,5 +420,6 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(13),
     fontFamily: 'fredoka-Medium',
     color: '#ffffff',
+    opacity: 0.75,
   },
 });

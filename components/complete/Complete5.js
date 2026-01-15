@@ -17,7 +17,8 @@ const Complete5 = () => {
   const { updateAnswer, answers } = useContext(UserAnswersContext);
   const [selected, setSelected] = useState(null);
 
-  const selectedLanguage = answers.learningLanguage || 'German';
+  // const selectedLanguage = answers.learningLanguage || 'German';
+  const selectedLanguage = answers.learningLanguages?.[0] || 'German';
 
   const options = [
     { label: '5min/Day', icon: require('../../assets/icons/5mints.png') },

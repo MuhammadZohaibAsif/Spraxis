@@ -6,49 +6,278 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  Modal,
+  FlatList,
 } from 'react-native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Iconadd from 'react-native-vector-icons/Ionicons';
+
 import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../../src/context/AuthContext';
 import firestore from '@react-native-firebase/firestore';
 import { UserAnswersContext } from '../../src/context/UserAnswersContext';
-
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-
 import Icon1 from 'react-native-vector-icons/Fontisto';
 import Icon2 from 'react-native-vector-icons/FontAwesome5';
-
 import { hp, moderateScale, wp } from '../../src/utilis/responsive';
-import FeaturedCourses from '../supportedscreens/FeaturedCourses';
+import { useNavigation } from '@react-navigation/native';
 
 const HomePage = () => {
-  const { user } = useContext(AuthContext);
-  const { saveAnswersToFirestore } = useContext(UserAnswersContext);
+  const navigation = useNavigation();
   const [userName, setUserName] = useState('User');
+  const { user } = useContext(AuthContext);
+  // const [learningLanguage, setLearningLanguage] = useState('');
+  const [learningLanguages, setLearningLanguages] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [availableLanguages, setAvailableLanguages] = useState([]);
+  // const [lessonCount, setLessonCount] = useState(0);
+  const [lessonCounts, setLessonCounts] = useState({});
+  const courseCardColors = ['#5B7BFE', '#f8eadacd'];
+
+  const getTextColorByBg = bgColor =>
+    bgColor === '#5B7BFE' ? '#FFFFFF' : '#000000';
+
+  const fetchAvailableLanguages = async () => {
+    try {
+      const snapshot = await firestore().collection('languages').get();
+      const languages = snapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().name, // assuming each language document has a 'name' field
+      }));
+      setAvailableLanguages(languages);
+    } catch (error) {
+      console.log('Error fetching languages:', error);
+    }
+  };
 
   useEffect(() => {
-    if (user?.displayName) {
-      setUserName(user.displayName);
-    }
+    const uid = user?._user?.uid || user?.uid;
+    if (!uid) return;
+
+    const fetchUserProfile = async () => {
+      try {
+        const doc = await firestore().collection('users').doc(uid).get();
+        if (doc.exists) {
+          const data = doc.data();
+          const profile = data?.profile || {};
+          setUserName(profile.fullName || 'User');
+          // make sure learningLanguages is an array
+          setLearningLanguages(profile.learningLanguages || []);
+        } else {
+          setUserName('User');
+          setLearningLanguages([]);
+        }
+      } catch (error) {
+        console.log('Error fetching user profile:', error);
+        setUserName('User');
+        setLearningLanguages([]);
+      }
+    };
+
+    fetchUserProfile();
   }, [user]);
 
   const getCleanName = (fullName = '') => {
     const parts = fullName.trim().split(' ').filter(Boolean);
 
     if (parts.length >= 3) {
-      return parts[1]; 
+      return parts[1];
     } else if (parts.length === 2) {
-      return parts[1]; 
+      return parts[1];
     } else if (parts.length === 1) {
-      return parts[0]; 
+      return parts[0];
     }
 
     return 'User';
   };
 
+  useEffect(() => {
+    const fetchLessonsCount = async () => {
+      if (!learningLanguages.length) {
+        setLessonCounts({});
+        return;
+      }
+
+      const counts = {};
+
+      try {
+        for (const lang of learningLanguages) {
+          const langId = lang.name.toLowerCase();
+
+          const snapshot = await firestore()
+            .collection('languages')
+            .doc(langId)
+            .collection('lessons')
+            .get();
+
+          counts[lang.name] = snapshot.size;
+        }
+
+        setLessonCounts(counts);
+      } catch (error) {
+        console.log('Error fetching lessons:', error);
+      }
+    };
+
+    fetchLessonsCount();
+  }, [learningLanguages]);
+
+  const addBgColor =
+    courseCardColors[learningLanguages.length % courseCardColors.length];
+
+  const addIconColor = addBgColor === '#5B7BFE' ? '#FFFFFF' : '#F76400';
+
+  const addTextColor = addBgColor === '#5B7BFE' ? '#FFFFFF' : '#000000';
+
+  // const getNextLessonId = (progress = {}) => {
+  //   const lessonIds = Object.keys(progress).sort(); // lesson1, lesson2, ...
+
+  //   // find first incomplete lesson
+  //   const nextLesson = lessonIds.find(lessonId => progress[lessonId] === false);
+
+  //   // if all lessons completed, fallback to last lesson
+  //   return nextLesson || lessonIds[lessonIds.length - 1] || null;
+  // };
+
+  const getNextLessonId = (progress = {}) => {
+    const lessonIds = Object.keys(progress).sort();
+
+    const nextLesson = lessonIds.find(
+      lessonId => progress[lessonId]?.completed === false,
+    );
+
+    return nextLesson || lessonIds[lessonIds.length - 1] || null;
+  };
+
   return (
     <View style={styles.parentcontainer}>
+      <Modal
+        visible={isModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select a Language</Text>
+
+            <FlatList
+              data={availableLanguages}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.languageItem}
+                  onPress={async () => {
+                    const uid = user?._user?.uid || user?.uid;
+                    if (!uid) return;
+
+                    try {
+                      const userDocRef = firestore()
+                        .collection('users')
+                        .doc(uid);
+                      const userSnap = await userDocRef.get();
+
+                      let existingLanguages =
+                        userSnap.data()?.profile?.learningLanguages || [];
+
+                      // check if already added
+                      const alreadyExists = existingLanguages.some(
+                        lang => lang.name === item.name,
+                      );
+
+                      if (alreadyExists) {
+                        setIsModalVisible(false);
+                        return;
+                      }
+
+                      // fetch lessons of selected language
+                      const lessonsSnap = await firestore()
+                        .collection('languages')
+                        .doc(item.name.toLowerCase())
+                        .collection('lessons')
+                        .get();
+
+                      const progress = {};
+                      lessonsSnap.forEach(doc => {
+                        progress[doc.id] = {
+                          completed: false,
+                          completedAt: null,
+                        }; // lesson not completed
+                      });
+
+                      const updatedLanguages = [
+                        ...existingLanguages,
+                        {
+                          name: item.name,
+                          progress: progress,
+                        },
+                      ];
+
+                      await userDocRef.update({
+                        'profile.learningLanguages': updatedLanguages,
+                      });
+
+                      setLearningLanguages(updatedLanguages);
+                      setIsModalVisible(false);
+                    } catch (err) {
+                      console.log('Error adding language:', err);
+                    }
+                  }}
+
+                  // onPress={async () => {
+                  //   const uid = user?._user?.uid || user?.uid;
+                  //   if (!uid) return;
+
+                  //   try {
+                  //     const userDocRef = firestore()
+                  //       .collection('users')
+                  //       .doc(uid);
+
+                  //     // Get current array
+                  //     const doc = await userDocRef.get();
+                  //     let existingLanguages = [];
+                  //     if (doc.exists) {
+                  //       existingLanguages =
+                  //         doc.data()?.profile?.learningLanguages || [];
+                  //     }
+
+                  //     // Add selected language if not present
+                  //     const updatedLanguages = existingLanguages.includes(
+                  //       item.name,
+                  //     )
+                  //       ? existingLanguages
+                  //       : [...existingLanguages, item.name];
+
+                  //     // Update Firestore
+                  //     await userDocRef.update({
+                  //       'profile.learningLanguages': updatedLanguages,
+                  //     });
+
+                  //     // Update local state
+                  //     setLearningLanguages(updatedLanguages);
+
+                  //     setIsModalVisible(false);
+                  //   } catch (error) {
+                  //     console.log('Error updating language:', error);
+                  //   }
+                  // }}
+                >
+                  <Text style={styles.languageText}>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setIsModalVisible(false)}
+            >
+              <Text style={styles.modalCloseText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      {/* // =================== Modal ENDED HERE ================ */}
       <StatusBar hidden={true} />
       <View style={styles.headercontainer}>
         <View style={styles.firstheadercontainer}>
@@ -71,57 +300,120 @@ const HomePage = () => {
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
         <Text style={styles.highlightedtext}>Continue course</Text>
-        <View style={styles.parentprogresscontainer}>
-          <View style={styles.progresscontainer}>
-            <View style={styles.container}>
-              <View style={{ transform: [{ rotate: '-90deg' }] }}>
-                <AnimatedCircularProgress
-                  size={95}
-                  width={10}
-                  fill={(15 * 100) / 30}
-                  tintColor="#3adbd5ff"
-                  backgroundColor="#ffffff"
-                  lineCap="round"
-                  delay={500}
-                />
-              </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.parentprogresscontainer}
+        >
+          {learningLanguages.map((language, index) => {
+            const bgColor = courseCardColors[index % courseCardColors.length];
+            const textColor = bgColor === '#5B7BFE' ? '#FFFFFF' : '#000000';
+            const progressFillColor =
+              bgColor === '#5B7BFE' ? '#3adbd5ff' : '#F76400';
+            const progressUnfillColor =
+              bgColor === '#5B7BFE' ? '#ffffff' : '#FFF6EB';
 
-              <View style={styles.textContainer}>
-                <Text style={styles.text}>15/20</Text>
-              </View>
-            </View>
-            <View style={styles.languagetextcontainer}>
-              <Text style={styles.languagetext}>German</Text>
-              <Text style={styles.languagetext}>Language</Text>
-              <Text style={styles.bottomtext}>20 Classes . Easy</Text>
-            </View>
-          </View>
-          <View style={styles.progresscontainer1}>
-            <View style={styles.container}>
-              <View style={{ transform: [{ rotate: '-90deg' }] }}>
-                <AnimatedCircularProgress
-                  size={95}
-                  width={10}
-                  fill={(10 * 100) / 30}
-                  tintColor="#F76400"
-                  backgroundColor="#f7b58946"
-                  lineCap="round"
-                  delay={500}
-                />
-              </View>
+            //////////////////////////////////////////////////
 
-              {/* Center Text */}
-              <View style={styles.textContainer}>
-                <Text style={styles.text1}>10/30</Text>
-              </View>
-            </View>
+            const progress = language.progress || {};
+            const totalLessons = Object.keys(progress).length;
+            // const completedLessons = Object.values(progress).filter(
+            //   v => v === true,
+            // ).length;
+            const completedLessons = Object.values(progress).filter(
+              lesson => lesson?.completed === true,
+            ).length;
+            const fill =
+              totalLessons === 0 ? 0 : (completedLessons / totalLessons) * 100;
+
+            return (
+              <TouchableOpacity
+                key={language.name}
+                style={[styles.progresscontainer, { backgroundColor: bgColor }]}
+                onPress={() => {
+                  const nextLessonId = getNextLessonId(language.progress);
+
+                  navigation.navigate('LearningStack', {
+                    screen: 'LearningTip',
+                    params: {
+                      language: language.name,
+                      lessonId: nextLessonId,
+                    },
+                  });
+                }}
+              >
+                <View style={styles.container}>
+                  <View style={{ transform: [{ rotate: '-90deg' }] }}>
+                    <AnimatedCircularProgress
+                      size={95}
+                      width={10}
+                      fill={fill}
+                      tintColor={progressFillColor} // dynamic fill color
+                      backgroundColor={progressUnfillColor} // dynamic unfill color
+                      lineCap="round"
+                    />
+                  </View>
+
+                  <View style={styles.textContainer}>
+                    <Text style={[styles.text, { color: textColor }]}>
+                      {completedLessons}/{totalLessons}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.languagetextcontainer}>
+                  <Text style={[styles.languagetext, { color: textColor }]}>
+                    {language.name}
+                  </Text>
+                  <Text style={[styles.languagetext, { color: textColor }]}>
+                    Language
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.bottomtext,
+                      { color: textColor, opacity: 0.7 },
+                    ]}
+                  >
+                    {lessonCounts[language.name] > 0
+                      ? `${lessonCounts[language.name]} ${
+                          lessonCounts[language.name] === 1
+                            ? 'Class'
+                            : 'Classes'
+                        }`
+                      : 'No Classes Yet'}
+                    . Easy
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+
+          <TouchableOpacity
+            style={[
+              styles.progresscontainer1,
+              {
+                backgroundColor: addBgColor,
+              },
+            ]}
+            onPress={() => {
+              fetchAvailableLanguages();
+              setIsModalVisible(true);
+            }}
+          >
             <View style={styles.languagetextcontainer1}>
-              <Text style={styles.languagetext1}>Spanish</Text>
-              <Text style={styles.languagetext1}>Language</Text>
-              <Text style={styles.bottomtext1}>20 Classes . Easy</Text>
+              <Iconadd
+                name="add-circle-outline"
+                size={48}
+                color={addIconColor}
+                style={styles.addIcon}
+              />
+              <Text style={[styles.languagetext1, { color: addTextColor }]}>
+                Add Language
+              </Text>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </ScrollView>
         <Text style={styles.FeaturedCourses}>Featured courses</Text>
         <ScrollView
           showsHorizontalScrollIndicator={false}
@@ -168,7 +460,12 @@ const HomePage = () => {
             </View>
           </View>
         </ScrollView>
-        <TouchableOpacity style={styles.weeklygoalscontainer}>
+        <TouchableOpacity
+          style={styles.weeklygoalscontainer}
+          onPress={() =>
+            navigation.navigate('GoalsStack', { screen: 'SetGoal1' })
+          } // yahan GoalsStack ko target karna
+        >
           <View style={styles.goalview}>
             <Image
               style={styles.goalimage}
@@ -267,19 +564,21 @@ const styles = StyleSheet.create({
   parentprogresscontainer: {
     marginHorizontal: wp('5%'),
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
   },
   progresscontainer: {
     backgroundColor: '#5B7BFE',
     height: hp('28%'),
     width: wp('42%'),
     borderRadius: 15,
+    marginRight: wp('4%'),
   },
   container: {
     marginVertical: hp('2.3%'),
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   textContainer: {
     position: 'absolute',
   },
@@ -303,7 +602,13 @@ const styles = StyleSheet.create({
     color: '#ffffffb7',
   },
   languagetextcontainer1: {
-    marginHorizontal: wp('4%'),
+    marginHorizontal: wp('5.5%'),
+  },
+  addIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: wp('9%'),
+    marginTop: hp('8%'),
   },
   text1: {
     fontSize: moderateScale(19),
@@ -338,6 +643,7 @@ const styles = StyleSheet.create({
     height: hp('28%'),
     width: wp('42%'),
     borderRadius: 15,
+    marginRight: wp('10%'),
   },
   parentgrammerquizcontainer: {
     flexDirection: 'row',
@@ -410,4 +716,110 @@ const styles = StyleSheet.create({
     color: '#0000008e',
     width: wp('55%'),
   },
+
+  // =================modal styling ================
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: wp('90%'),
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    maxHeight: hp('95%'),
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+    backgroundColor: '#5B7BFE',
+    paddingVertical: hp('1.5%'),
+    borderRadius: 14,
+    color: '#fff',
+  },
+  languageItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  languageText: {
+    fontSize: 19,
+    fontFamily: 'fredoka-Medium',
+    color: '#000000aa',
+  },
+  modalCloseButton: {
+    marginTop: 15,
+    backgroundColor: '#5B7BFE',
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  modalCloseText: {
+    color: '#fff',
+    textAlign: 'center',
+    // fontWeight: 'bold',
+    fontSize: 21,
+    fontFamily: 'fredoka-Medium',
+  },
 });
+{
+  /* <TouchableOpacity style={styles.progresscontainer}>
+            <View style={styles.container}>
+              <View style={{ transform: [{ rotate: '-90deg' }] }}>
+                <AnimatedCircularProgress
+                  size={95}
+                  width={10}
+                  fill={(15 * 100) / 30}
+                  tintColor="#3adbd5ff"
+                  backgroundColor="#ffffff"
+                  lineCap="round"
+                  delay={500}
+                />
+              </View>
+
+              <View style={styles.textContainer}>
+                <Text style={styles.text}>15/20</Text>
+              </View>
+            </View>
+            <View style={styles.languagetextcontainer}>
+              <Text style={styles.languagetext}>
+                {learningLanguages.join(', ') || 'No language selected'}
+              </Text>
+              <Text style={styles.languagetext}>Language</Text>
+              <Text style={styles.bottomtext}>
+                {lessonCount > 0
+                  ? `${lessonCount} ${lessonCount === 1 ? 'Class' : 'Classes'}`
+                  : 'No Classes Yet'}
+                . Easy
+              </Text>
+            </View>
+          </TouchableOpacity> */
+}
+// useEffect(() => {
+//   const fetchLessonsCount = async () => {
+//     if (!learningLanguages?.length) {
+//       setLessonCount(0);
+//       return;
+//     }
+
+//     const languageName = learningLanguages[0].toLowerCase(); // assuming language IDs are lowercase
+//     try {
+//       const lessonsSnapshot = await firestore()
+//         .collection('languages')
+//         .doc(languageName)
+//         .collection('lessons')
+//         .get();
+
+//       setLessonCount(lessonsSnapshot.size);
+//     } catch (error) {
+//       console.log('Error fetching lessons:', error);
+//       setLessonCount(0);
+//     }
+//   };
+
+//   fetchLessonsCount();
+// }, [learningLanguages]);

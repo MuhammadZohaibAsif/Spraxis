@@ -39,9 +39,18 @@ const Complete1o = () => {
 
   const handleSelect = lang => setSelected(lang);
 
+  // const handleNext = () => {
+  //   if (!selected) return;
+  //   updateAnswer('learningLanguage', selected);
+  //   navigation.navigate('Complete2');
+  // };
   const handleNext = () => {
     if (!selected) return;
-    updateAnswer('learningLanguage', selected);
+
+    // Save selected language in context for later (after account creation)
+    updateAnswer('learningLanguages', [selected]); // store as array
+
+    // Navigate to next screen
     navigation.navigate('Complete2');
   };
 
@@ -142,7 +151,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   protext: {
-    color:"#000000",
+    color: '#000000',
     width: wp('85%'),
     marginTop: hp('4.5%'),
     marginBottom: hp('3%'),
@@ -180,7 +189,7 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(18),
     opacity: 0.85,
     paddingLeft: wp('4%'),
-    color:"#000000",
+    color: '#000000',
   },
   nextbutton: {
     alignItems: 'center',

@@ -6,17 +6,55 @@ import {
   StatusBar,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
 import { hp, moderateScale, wp } from '../../src/utilis/responsive';
+import { useNavigation } from '@react-navigation/native';
+import { useGoal } from '../../src/context/GoalContext';
 
 const SetGoal1 = () => {
+  const { goalData, updateGoal } = useGoal();
+  const selectedOption = goalData.level;
+  const navigation = useNavigation();
+  // const [selectedOption, setSelectedOption] = useState(null);
+
+  const options = [
+    {
+      key: 'basic',
+      title: 'Basic',
+      description:
+        'Use familiar everyday expressions, such as introductions, details about yourself and your family',
+    },
+    {
+      key: 'independent',
+      title: 'Independent',
+      description:
+        'Understand the main points when communications in everyday situations and can share your options.',
+    },
+    {
+      key: 'proficient',
+      title: 'Proficient',
+      description:
+        'Communicate effectively and flexibly in most social, academic and professional contexts and understand indirect meaning.',
+    },
+  ];
+
+  const handleNext = () => {
+    if (!selectedOption) {
+      Alert.alert('Select an option', 'Please select a level to continue');
+      return;
+    }
+
+    // Navigate to next goal screen
+    navigation.navigate('SetGoal2');
+  };
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
       <View style={styles.headercontainer}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon
             style={styles.icon}
             name="chevron-left"
@@ -31,34 +69,40 @@ const SetGoal1 = () => {
         <Text style={styles.protext}>Which level do you want to reach?</Text>
       </View>
 
-
-      <View style={styles.listcontainer}>
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>Basic</Text>
-          <Text style={styles.subitemstext}>
-            Use familiar everyday expressions, such as introductions,details
-            about yourself and your family
-          </Text>
-        </View>
-
-
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>Independent</Text>
-          <Text style={styles.subitemstext}>
-     Understand the main points when communications in everyday situations and can share your options.
-          </Text>
-        </View>
-
-
-        <View style={styles.listitemcontainer}>
-          <Text style={styles.itemstext}>Proficient</Text>
-          <Text style={styles.subitemstext}>
-            Communicate effectively and flexibly in most social, academic and professional contexts and understand indirect meaning.
-          </Text>
-        </View>
-      </View>
-
-      <TouchableOpacity style={styles.nextbutton}>
+      <ScrollView style={styles.listcontainer}>
+        {options.map(item => (
+          <TouchableOpacity
+            key={item.key}
+            style={[
+              styles.listitemcontainer,
+              selectedOption === item.key && { backgroundColor: '#5BA890' },
+            ]}
+            onPress={() => updateGoal({ level: item.key })}
+          >
+            <Text
+              style={[
+                styles.itemstext,
+                {
+                  color: selectedOption === item.key ? '#ffffff' : '#000000',
+                },
+              ]}
+            >
+              {item.title}
+            </Text>
+            <Text
+              style={[
+                styles.subitemstext,
+                {
+                  color: selectedOption === item.key ? '#ffffff' : '#000000',
+                },
+              ]}
+            >
+              {item.description}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+      <TouchableOpacity style={styles.nextbutton} onPress={handleNext}>
         <Text style={styles.nexttext}>Next</Text>
       </TouchableOpacity>
     </View>
@@ -98,6 +142,7 @@ const styles = StyleSheet.create({
     width: wp('84%'),
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(21),
+    color: '#000000',
   },
   listcontainer: {
     flex: 1,
@@ -116,6 +161,7 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(16),
     opacity: 0.85,
     paddingLeft: wp('4%'),
+    color: '#000000',
   },
   subitemstext: {
     fontFamily: 'fredoka-Medium',

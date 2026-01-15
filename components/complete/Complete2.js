@@ -19,8 +19,8 @@ const Complete2 = () => {
   const { updateAnswer, answers } = useContext(UserAnswersContext);
   const [selected, setSelected] = useState(null);
 
-  const selectedLanguage = answers.learningLanguage || 'German';
-
+  // const selectedLanguage = answers.learningLanguage || 'German';
+  const selectedLanguage = answers.learningLanguages?.[0] || 'German';
   const options = [
     {
       id: 1,

@@ -7,17 +7,68 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
-import { hp, moderateScale, wp } from '../src/utilis/responsive';
+import { hp, moderateScale, wp } from '../../src/utilis/responsive';
+import { useNavigation } from '@react-navigation/native';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
+import { useGoal } from '../../src/context/GoalContext';
 
 const SetGoal5 = () => {
+  const { goalData, resetGoal } = useGoal();
+  const navigation = useNavigation();
+  const handleGotIt = async () => {
+    if (
+      !goalData ||
+      !goalData.language ||
+      !goalData.time ||
+      !goalData.days?.length
+    ) {
+      Alert.alert('Incomplete Goal', 'Please select time, days, and language.');
+      return;
+    }
+
+    const user = auth().currentUser;
+    if (!user) return;
+
+    try {
+      await firestore()
+        .collection('users')
+        .doc(user.uid)
+        .set(
+          {
+            profile: {
+              goals: firestore.FieldValue.arrayUnion({
+                ...goalData,
+                createdAt: new Date().toISOString(), // use client-side timestamp
+              }),
+            },
+          },
+          { merge: true },
+        );
+
+      console.log('Goal saved successfully!');
+
+      // reset context for new goal
+      resetGoal();
+
+      // Navigate to Task tab
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'BottomTabs', params: { screen: 'Task' } }],
+      });
+    } catch (error) {
+      console.log('Error saving goal:', error);
+    }
+  };
+
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
 
       <View style={styles.headercontainer}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon
             style={styles.icon}
             name="chevron-left"
@@ -25,21 +76,18 @@ const SetGoal5 = () => {
             color="#fff"
           />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Icon style={styles.icon} name="cross" size={26} color="#fff" />
-        </TouchableOpacity>
       </View>
       <View style={styles.congratsView}>
         <Image
           style={styles.congratsimage}
-          source={require('../assets/GoalSet.png')}
+          source={require('../../assets/GoalSet.png')}
         />
         <Text style={styles.congratstext}>Goal Set</Text>
         <Text style={styles.subcongratstext}>
           You'll complete 5 activities per week
         </Text>
       </View>
-      <TouchableOpacity style={styles.nextbutton}>
+      <TouchableOpacity style={styles.nextbutton} onPress={handleGotIt}>
         <Text style={styles.nexttext}>Got it</Text>
       </TouchableOpacity>
     </View>

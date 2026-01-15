@@ -6,18 +6,59 @@ import {
   StatusBar,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
-import { hp, moderateScale, wp } from '../src/utilis/responsive';
+import { hp, moderateScale, wp } from '../../src/utilis/responsive';
+import { useNavigation } from '@react-navigation/native';
+import { useGoal } from '../../src/context/GoalContext';
 
 const SetGoal3 = () => {
+  const navigation = useNavigation();
+  const { goalData, updateGoal } = useGoal();
+  const selectedOption = goalData.dailyMinutes; // pehle yeh useState me tha
+
+  const options = [
+    {
+      key: '5',
+      label: '5 min / Day',
+      icon: require('../../assets/icons/5mints.png'),
+    },
+    {
+      key: '15',
+      label: '15 min / Day',
+      icon: require('../../assets/icons/15mints.png'),
+    },
+    {
+      key: '30',
+      label: '30 min / Day',
+      icon: require('../../assets/icons/30mints.png'),
+    },
+    {
+      key: '60',
+      label: '60 min / Day',
+      icon: require('../../assets/icons/60mints.png'),
+    },
+  ];
+
+  const handleNext = () => {
+    if (!selectedOption) {
+      Alert.alert(
+        'Select learning time',
+        'Please select a daily learning goal',
+      );
+      return;
+    }
+    navigation.navigate('SetGoal4'); // params nahi chahiye, context already update ho chuka
+  };
+
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
 
       <View style={styles.headercontainer}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon
             style={styles.icon}
             name="chevron-left"
@@ -36,7 +77,7 @@ const SetGoal3 = () => {
             <View style={styles.imagecontainer}>
               <Image
                 style={styles.imagestyling}
-                source={require('../assets/icons/basic.png')}
+                source={require('../../assets/icons/basic.png')}
               />
             </View>
             <Text style={styles.itemstext}>Basic Level</Text>
@@ -45,24 +86,49 @@ const SetGoal3 = () => {
             <View style={styles.imagecontainer}>
               <Image
                 style={styles.imagestyling}
-                source={require('../assets/icons/months.png')}
+                source={require('../../assets/icons/months.png')}
               />
             </View>
             <Text style={styles.itemstext}>1 - 3 Months</Text>
           </View>
         </View>
-        <Text style={styles.protext2}>Your Dutch Goal:</Text>
-        <View style={styles.listitemcontainer}>
-          <View style={styles.imagecontainer}>
-            <Image
-              style={styles.imagestyling2}
-              source={require('../assets/icons//5mints.png')}
-            />
+        <ScrollView contentContainerStyle={{ paddingBottom: hp('3%') }}>
+          <View style={styles.createacctext}>
+            <Text style={styles.protext2}>Your Learning Goal:</Text>
           </View>
-          <Text style={styles.itemstext2}>5min/Day</Text>
-        </View>
+
+          {/* Options */}
+          {options.map(item => (
+            <TouchableOpacity
+              key={item.key}
+              style={[
+                styles.listitemcontainer,
+                {
+                  backgroundColor:
+                    selectedOption === item.key ? '#5BA890' : '#e0e5e7',
+                },
+              ]}
+              onPress={() => updateGoal({ dailyMinutes: item.key })}
+            >
+              <View style={styles.imagecontainer}>
+                <Image style={styles.imagestyling} source={item.icon} />
+              </View>
+
+              <Text
+                style={[
+                  styles.itemstext2,
+                  {
+                    color: selectedOption === item.key ? '#ffffff' : '#000000',
+                  },
+                ]}
+              >
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
-      <TouchableOpacity style={styles.nextbutton}>
+      <TouchableOpacity style={styles.nextbutton} onPress={handleNext}>
         <Text style={styles.nexttext}>Next</Text>
       </TouchableOpacity>
     </View>
@@ -105,14 +171,15 @@ export const styles = StyleSheet.create({
     width: wp('84%'),
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(21),
+    color: '#000000',
   },
   protext2: {
-    marginTop: hp('4.5%'),
-    marginBottom: hp('2.8%'),
+    marginTop: hp('3.3%'),
+    marginBottom: hp('1%'),
     width: wp('84%'),
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(21),
-    marginLeft: wp('7%'),
+    color: '#000000',
   },
 
   contentcontainer: {
@@ -144,7 +211,7 @@ export const styles = StyleSheet.create({
     alignSelf: 'center',
   },
 
-    imagestyling2: {
+  imagestyling2: {
     width: wp('7.3%'),
     height: hp('3.5%'),
     alignSelf: 'center',
@@ -153,11 +220,13 @@ export const styles = StyleSheet.create({
     marginTop: hp('1.5%'),
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(14),
+    color: '#000000',
   },
   itemstext2: {
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(18),
     paddingLeft: wp('4%'),
+    color: '#000000',
   },
   listitemcontainer: {
     marginTop: hp('2%'),

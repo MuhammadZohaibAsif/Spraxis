@@ -17,7 +17,8 @@ import { UserAnswersContext } from '../../src/context/UserAnswersContext';
 const Complete7 = () => {
   const navigation = useNavigation();
   const { answers } = useContext(UserAnswersContext);
-  const selectedLanguage = answers.learningLanguage || 'German';
+  // const selectedLanguage = answers.learningLanguage || 'German';
+  const selectedLanguage = answers.learningLanguages?.[0] || 'German';
 
   const [totalWords, setTotalWords] = useState(0);
   const [totalSentences, setTotalSentences] = useState(0);

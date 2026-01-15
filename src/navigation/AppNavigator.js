@@ -17,7 +17,7 @@ import HomePage from '../../components/main/HomePage';
 
 import BottomTabs from './BottomTabs';
 import Complete1 from '../../components/complete/Complete1';
-import Complete1o from '../../components/complete/Complete1o'; 
+import Complete1o from '../../components/complete/Complete1o';
 
 import Complete2 from '../../components/complete/Complete2';
 import Complete3 from '../../components/complete/Complete3';
@@ -25,10 +25,30 @@ import Complete4 from '../../components/complete/Complete4';
 import Complete5 from '../../components/complete/Complete5';
 import Complete6 from '../../components/complete/Complete6';
 import Complete7 from '../../components/complete/Complete7';
-import Congratulations from '../../components/supportedscreens/Congratulations'; 
+import Congratulations from '../../components/supportedscreens/Congratulations';
+import LearningStack from './LearningStack';
+//////////////////
 
+import SetGoal1 from '../../components/goals/SetGoal1';
+import SetGoal2 from '../../components/goals/SetGoal2';
+import SetGoal3 from '../../components/goals/SetGoal3';
+import SetGoal4 from '../../components/goals/SetGoal4';
+import SetGoal5 from '../../components/goals/SetGoal5';
+import Settings from '../../components/main/Settings';
 
 const Stack = createNativeStackNavigator();
+
+const GoalsStack = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="SetGoal1" component={SetGoal1} />
+      <Stack.Screen name="SetGoal2" component={SetGoal2} />
+      <Stack.Screen name="SetGoal3" component={SetGoal3} />
+      <Stack.Screen name="SetGoal4" component={SetGoal4} />
+      <Stack.Screen name="SetGoal5" component={SetGoal5} />
+    </Stack.Navigator>
+  );
+};
 
 const AuthStack = () => (
   <Stack.Navigator
@@ -50,7 +70,7 @@ const AuthStack = () => (
     <Stack.Screen name="Complete5" component={Complete5} />
     <Stack.Screen name="Complete6" component={Complete6} />
     <Stack.Screen name="Complete7" component={Complete7} />
-    <Stack.Screen name="Congratulations" component={Congratulations} /> 
+    <Stack.Screen name="Congratulations" component={Congratulations} />
   </Stack.Navigator>
 );
 
@@ -78,8 +98,6 @@ const AppNavigator = () => {
       const seen = await AsyncStorage.getItem('hasSeenOnboarding');
       // setHasSeenOnboarding(seen === 'false');
       setHasSeenOnboarding(seen === 'true');
-
-
     };
     checkOnboardingStatus();
   }, []);
@@ -94,21 +112,30 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      <UserAnswersProvider>
-        {showSplash ? (
-          <SplashScreen />
-        ) : user ? (
-          <BottomTabs />
-        ) : hasSeenOnboarding ? (
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Login" component={LogIn} />
-            <Stack.Screen name="SignUp" component={SignUp} />
-            <Stack.Screen name="SignUp2" component={SignUp2} />
-          </Stack.Navigator>
-        ) : (
-          <AuthStack />
-        )}
-      </UserAnswersProvider>
+      {/* <UserAnswersProvider> */}
+      {showSplash ? (
+        <SplashScreen />
+      ) : user ? (
+        // <BottomTabs/>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {/* Main App */}
+          <Stack.Screen name="BottomTabs" component={BottomTabs} />
+          <Stack.Screen name="Settings" component={Settings} />
+          {/* Learning Flow */}
+          <Stack.Screen name="LearningStack" component={LearningStack} />
+          {/* Goals Flow */}
+          <Stack.Screen name="GoalsStack" component={GoalsStack} />
+        </Stack.Navigator>
+      ) : hasSeenOnboarding ? (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Login" component={LogIn} />
+          <Stack.Screen name="SignUp" component={SignUp} />
+          <Stack.Screen name="SignUp2" component={SignUp2} />
+        </Stack.Navigator>
+      ) : (
+        <AuthStack />
+      )}
+      {/* </UserAnswersProvider> */}
     </NavigationContainer>
   );
 };

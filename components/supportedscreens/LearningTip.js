@@ -9,15 +9,21 @@ import {
 } from 'react-native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
-import { hp, moderateScale, wp } from '../src/utilis/responsive';
-
+import { hp, moderateScale, wp } from '../../src/utilis/responsive';
+import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 const LearningTip = () => {
+  const navigation = useNavigation();
+
+  const route = useRoute();
+  const { language, lessonId } = route.params;
+
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
 
       <View style={styles.headercontainer}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon
             style={styles.icon}
             name="chevron-left"
@@ -25,21 +31,34 @@ const LearningTip = () => {
             color="#fff"
           />
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            // console.log(language)
+            navigation.popToTop();
+          }}
+        >
           <Icon style={styles.icon} name="cross" size={26} color="#fff" />
         </TouchableOpacity>
       </View>
       <View style={styles.congratsView}>
         <Image
           style={styles.congratsimage}
-          source={require('../assets/LanguageTip.png')}
+          source={require('../../assets/LanguageTip.png')}
         />
         <Text style={styles.congratstext}>Learning Tip</Text>
         <Text style={styles.subcongratstext}>
           Hear it loud and clear : turn up the volume or use headphones
         </Text>
       </View>
-      <TouchableOpacity style={styles.nextbutton}>
+      <TouchableOpacity
+        style={styles.nextbutton}
+        onPress={() =>
+          navigation.navigate('Que5', {
+            language: language,
+            lessonId: lessonId,
+          })
+        }
+      >
         <Text style={styles.nexttext}>Got it!</Text>
       </TouchableOpacity>
     </View>

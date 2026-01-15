@@ -6,20 +6,52 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React from 'react';
 import { hp, moderateScale, wp } from '../../src/utilis/responsive';
 import Icon from 'react-native-vector-icons/Entypo';
-import Icon2 from 'react-native-vector-icons/Ionicons';
 import CountryFlag from 'react-native-country-flag';
-
 import Icon1 from 'react-native-vector-icons/Ionicons';
+import React, { useEffect, useState } from 'react';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import { useNavigation } from '@react-navigation/native';
+
+/////////////////////////////
 
 const Profile = () => {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [createdAt, setCreatedAt] = useState(null);
+  const navigation = useNavigation();
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const currentUser = auth().currentUser;
+      if (currentUser) {
+        try {
+          const doc = await firestore()
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+
+          if (doc.exists) {
+            const data = doc.data();
+            setProfile(data.profile);
+            setCreatedAt(data.createdAt); // ye root level timestamp
+          }
+        } catch (error) {
+          console.log('Error fetching profile:', error);
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchProfile();
+  }, []);
+
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
       <View style={styles.headercontainer}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon
             style={styles.icon}
             name="chevron-left"
@@ -28,7 +60,7 @@ const Profile = () => {
           />
         </TouchableOpacity>
         <Text style={styles.headertext}>Profile</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
           <Icon1
             style={styles.icon}
             name="settings-outline"
@@ -46,8 +78,18 @@ const Profile = () => {
             color="#fff"
           />
         </View>
-        <Text style={styles.usernametext}>Muhammad Zohaib Asif</Text>
-        <Text style={styles.joiningdate}>joined march 2023</Text>
+        <Text style={styles.usernametext}>
+          {' '}
+          {loading ? 'Loading...' : profile?.fullName || 'User'}
+        </Text>
+        <Text style={styles.joiningdate}>
+          {loading
+            ? ''
+            : `joined ${createdAt?.toDate().toLocaleDateString('en-US', {
+                month: 'long',
+                year: 'numeric',
+              })}`}
+        </Text>
         <TouchableOpacity style={styles.addlanguagecontainer}>
           <Text style={styles.addlanguagetext}>Add Language +</Text>
         </TouchableOpacity>
@@ -78,7 +120,7 @@ const Profile = () => {
         </View>
 
         <TouchableOpacity style={styles.thisweekcontainer}>
-          <Text style={styles.thisweektext}>This week </Text>
+          <Text style={styles.thisweektext}>This Week </Text>
         </TouchableOpacity>
       </View>
       <View style={styles.myactivitycontainer}>
@@ -140,6 +182,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   usernametext: {
+    color: '#000000',
     textAlign: 'center',
     fontFamily: 'Fredoka-Bold',
     fontSize: moderateScale(20),
@@ -183,6 +226,7 @@ const styles = StyleSheet.create({
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(18),
     marginTop: hp('0.5%'),
+    color: '#000000',
   },
   viewalltext: {
     fontFamily: 'fredoka-Medium',
@@ -221,6 +265,7 @@ const styles = StyleSheet.create({
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(18),
     paddingLeft: wp('4%'),
+    color: '#000000',
   },
   icon2: {
     opacity: 0.7,
@@ -234,16 +279,16 @@ const styles = StyleSheet.create({
   thisweekcontainer: {
     backgroundColor: '#e0e5e7',
     borderColor: '#5B7BFE',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderRadius: 6.5,
-    paddingHorizontal: wp('4%'),
-    paddingVertical: wp('1.5%'),
-    opacity: 0.6,
+    paddingHorizontal: wp('2.5%'),
+    paddingVertical: wp('1.7%'),
+    opacity: 0.75,
     alignSelf: 'center',
   },
   thisweektext: {
     fontFamily: 'fredoka-Medium',
-    fontSize: moderateScale(12),
+    fontSize: moderateScale(16),
     // color: '#5B7BFE',
     opacity: 0.6,
   },
@@ -273,6 +318,7 @@ const styles = StyleSheet.create({
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(16),
     marginBottom: hp('0.8%'),
+    color: '#000000',
   },
   leveltext: {
     fontFamily: 'fredoka-Medium',

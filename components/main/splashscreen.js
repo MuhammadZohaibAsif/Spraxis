@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import React from 'react';
 import { wp, hp, moderateScale } from '../../src/utilis/responsive';
+import firestore from '@react-native-firebase/firestore';
+import { useEffect } from 'react';
 
 const SplashScreen = () => {
   return (

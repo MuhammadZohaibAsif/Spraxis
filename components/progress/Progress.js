@@ -6,10 +6,11 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import React, { useState } from 'react';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
+import React, { useEffect, useState } from 'react';
 import { Dropdown } from 'react-native-element-dropdown';
 import Icon2 from 'react-native-vector-icons/MaterialIcons';
-
 import Icon from 'react-native-vector-icons/Entypo';
 import Icon1 from 'react-native-vector-icons/Ionicons';
 
@@ -17,29 +18,201 @@ import { hp, moderateScale, wp } from '../../src/utilis/responsive';
 import { BarChart } from 'react-native-gifted-charts';
 
 const Progress = () => {
-  const [value, setValue] = useState('german');
   const [timeline, setTimeline] = useState('week');
+  const [courses, setCourses] = useState([]);
+  const [value, setValue] = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [userProgress, setUserProgress] = useState({});
 
-  const data = [
-    { label: 'German Language', value: 'german' },
-    { label: 'Spanish Language', value: 'spanish' },
-    { label: 'French Language', value: 'french' },
+  const getWeekLabels = () => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  const getMonthLabels = days =>
+    Array.from({ length: days }, (_, i) => `${i + 1}`);
+
+  const getYearLabels = () => [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
+
+  //////////////////////////////////
+
+  const buildBarData = () => {
+    if (!userProgress) return [];
+
+    const completedDates = Object.values(userProgress)
+      .filter(p => p.completed && p.completedAt)
+      .map(p => p.completedAt.toDate());
+
+    if (timeline === 'week') {
+      const counts = Array(7).fill(0);
+      completedDates.forEach(date => {
+        let day = date.getDay(); // Sun = 0
+        day = day === 0 ? 6 : day - 1; // Convert to Mon=0
+        counts[day]++;
+      });
+
+      return getWeekLabels().map((label, i) => ({
+        label,
+        value: counts[i],
+        frontColor: '#d3d3d389',
+      }));
+    }
+
+    if (timeline === 'month') {
+      const daysInMonth = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth() + 1,
+        0,
+      ).getDate();
+
+      const counts = Array(daysInMonth).fill(0);
+
+      completedDates.forEach(date => {
+        if (date.getMonth() === new Date().getMonth()) {
+          counts[date.getDate() - 1]++;
+        }
+      });
+
+      return getMonthLabels(daysInMonth).map((label, i) => ({
+        label,
+        value: counts[i],
+        frontColor: '#d3d3d389',
+      }));
+    }
+
+    if (timeline === 'year') {
+      const counts = Array(12).fill(0);
+
+      completedDates.forEach(date => {
+        if (date.getFullYear() === new Date().getFullYear()) {
+          counts[date.getMonth()]++;
+        }
+      });
+
+      return getYearLabels().map((label, i) => ({
+        label,
+        value: counts[i],
+        frontColor: '#d3d3d389',
+      }));
+    }
+
+    return [];
+  };
+
+  const barData = buildBarData();
+
+  const MAX_VALUES = {
+    week: 5, // max 5 lessons/day
+    month: 20, // max 20 lessons/day
+    year: 60, // max 60 lessons/month
+  };
+
+  // const maxValue = MAX_VALUES[timeline];
+  const calculatedMax = Math.max(...barData.map(b => b.value), 1) + 2;
+
+  const maxValue =
+    calculatedMax > MAX_VALUES[timeline] ? calculatedMax : MAX_VALUES[timeline];
+
+  ////////////////////////////////
+
+  useEffect(() => {
+    const fetchLearningLanguages = async () => {
+      try {
+        const uid = auth().currentUser.uid;
+
+        const userDoc = await firestore().collection('users').doc(uid).get();
+
+        if (!userDoc.exists) return;
+
+        const profile = userDoc.data()?.profile;
+
+        if (
+          profile?.learningLanguages &&
+          Array.isArray(profile.learningLanguages)
+        ) {
+          const dropdownData = profile.learningLanguages.map(item => ({
+            label: `${item.name} Language`,
+            value: item.name.toLowerCase(),
+          }));
+
+          setCourses(dropdownData);
+          setValue(dropdownData[0]?.value ?? null);
+        }
+      } catch (error) {
+        console.log('Error fetching learning languages:', error);
+      }
+    };
+
+    fetchLearningLanguages();
+  }, []);
+
+  useEffect(() => {
+    if (!value) return;
+
+    const fetchLessonsAndProgress = async () => {
+      try {
+        const uid = auth().currentUser.uid;
+
+        // 1. Get user progress for selected language
+        const userDoc = await firestore().collection('users').doc(uid).get();
+        const learningLanguages =
+          userDoc.data()?.profile?.learningLanguages || [];
+
+        const selectedLanguage = learningLanguages.find(
+          l => l.name.toLowerCase() === value,
+        );
+
+        const progressMap = selectedLanguage?.progress || {};
+        setUserProgress(progressMap);
+
+        // 2. Fetch lessons from language collection
+        const lessonSnap = await firestore()
+          .collection('languages')
+          .doc(value)
+          .collection('lessons')
+          .get();
+
+        const lessonList = lessonSnap.docs.map(doc => ({
+          id: doc.id,
+          title: doc.data()?.sentence?.title ?? 'Untitled Lesson',
+        }));
+
+        setLessons(lessonList);
+      } catch (err) {
+        console.log('Error fetching lessons:', err);
+      }
+    };
+
+    fetchLessonsAndProgress();
+  }, [value]);
+
   const timelineData = [
     { label: 'This Week', value: 'week' },
     { label: 'This Month', value: 'month' },
     { label: 'This Year', value: 'year' },
   ];
 
-  const barData = [
-    { value: 15, label: 'Mon', frontColor: '#d3d3d389' },
-    { value: 25, label: 'Tue', frontColor: '#d3d3d389' },
-    { value: 10, label: 'Wed', frontColor: '#d3d3d389' },
-    { value: 31, label: 'Thur', frontColor: '#FF6600' }, 
-    { value: 12, label: 'Fri', frontColor: '#d3d3d389' },
-    { value: 28, label: 'Sat', frontColor: '#d3d3d389' },
-    { value: 18, label: 'Sun', frontColor: '#d3d3d389' },
-  ];
+  const highlightIndex =
+    timeline === 'week'
+      ? new Date().getDay() === 0
+        ? 6
+        : new Date().getDay() - 1
+      : timeline === 'month'
+      ? new Date().getDate() - 1
+      : new Date().getMonth();
+
+  barData[highlightIndex] && (barData[highlightIndex].frontColor = '#FF6600');
+
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
@@ -57,10 +230,11 @@ const Progress = () => {
       <View style={styles.createacctext}>
         <Text style={styles.protext}>Course</Text>
       </View>
+
       <View style={styles.dropdowncontainer}>
         <Dropdown
           style={styles.coursedropdown}
-          data={data}
+          data={courses}
           labelField="label"
           valueField="value"
           placeholder="Select Course"
@@ -70,14 +244,16 @@ const Progress = () => {
             fontFamily: 'fredoka-Medium',
             fontSize: moderateScale(16),
           }}
-          itemTextStyle={{ fontFamily: 'fredoka-Medium', color: '#000' }}
+          itemTextStyle={{
+            fontFamily: 'fredoka-Medium',
+            color: '#000',
+          }}
           value={value}
           onChange={item => {
             setValue(item.value);
           }}
           dropdownPosition="bottom"
           dropdownStyle={{
-            marginTop: 0, 
             borderRadius: 10,
             borderWidth: 1,
             borderColor: '#ccc',
@@ -85,6 +261,7 @@ const Progress = () => {
           }}
         />
       </View>
+
       <ScrollView style={styles.scrollview}>
         <View style={styles.createacctext1}>
           <Text style={styles.protext}>Progress</Text>
@@ -97,7 +274,7 @@ const Progress = () => {
               placeholder="This Week"
               dropdownPosition="bottom"
               dropdownStyle={{
-                marginTop: 0, 
+                marginTop: 0,
                 borderRadius: 10,
                 borderWidth: 1,
                 borderColor: '#ccc',
@@ -129,13 +306,14 @@ const Progress = () => {
             hideYAxisText
             yAxisThickness={0}
             xAxisThickness={0}
-            noOfSections={3}
+            noOfSections={5}
+            maxValue={maxValue}
             barBorderRadius={8}
             xAxisLabelTextStyle={{
               fontFamily: 'fredoka-Medium',
               fontSize: moderateScale(15),
               color: '#000',
-              opacity: 0.6, 
+              opacity: 0.6,
               marginTop: hp('0.3%'),
             }}
             renderTooltip={item => {
@@ -170,7 +348,7 @@ const Progress = () => {
                       borderLeftColor: 'transparent',
                       borderRightColor: 'transparent',
                       borderTopColor: '#F76400',
-                      marginTop: -2, 
+                      marginTop: -2,
                     }}
                   />
                 </View>
@@ -183,42 +361,32 @@ const Progress = () => {
             Completed Tasks
           </Text>
         </View>
-        <View style={styles.subcompletetaskview}>
-          <View style={styles.innersubcompletetaskview}>
-            <View style={styles.IconView}>
-              <Icon1 name="play-outline" size={32} color="#5B7BFE" />
+        {/* //////////// */}
+
+        {lessons.map((lesson, index) => {
+          const completed = userProgress?.[lesson.id]?.completed === true;
+
+          return (
+            <View key={lesson.id} style={styles.subcompletetaskview}>
+              <View style={styles.innersubcompletetaskview}>
+                <View style={styles.IconView}>
+                  <Icon1 name="play-outline" size={32} color="#5B7BFE" />
+                </View>
+
+                <View>
+                  <Text style={styles.lessonname}>{lesson.title}</Text>
+                  <Text style={styles.lessonnumber}>Lesson {index + 1}</Text>
+                </View>
+              </View>
+
+              <Icon2
+                name="check-circle"
+                size={25}
+                color={completed ? '#4a90e2' : '#cfcfcf'}
+              />
             </View>
-            <View>
-              <Text style={styles.lessonname}>Erater Tag in Berlin</Text>
-              <Text style={styles.lessonnumber}>Lesson 1</Text>
-            </View>
-          </View>
-          <Icon2 name="check-circle" size={25} color="#4a90e2" />
-        </View>
-        <View style={styles.subcompletetaskview}>
-          <View style={styles.innersubcompletetaskview}>
-            <View style={styles.IconView}>
-              <Icon1 name="play-outline" size={32} color="#5B7BFE" />
-            </View>
-            <View>
-              <Text style={styles.lessonname}>First Step</Text>
-              <Text style={styles.lessonnumber}>Lesson 2</Text>
-            </View>
-          </View>
-          <Icon2 name="check-circle" size={25} color="#4a90e2" />
-        </View>
-        <View style={styles.subcompletetaskview}>
-          <View style={styles.innersubcompletetaskview}>
-            <View style={styles.IconView}>
-              <Icon1 name="play-outline" size={32} color="#5B7BFE" />
-            </View>
-            <View>
-              <Text style={styles.lessonname}>Vocabulary</Text>
-              <Text style={styles.lessonnumber}>Lesson 3</Text>
-            </View>
-          </View>
-          <Icon2 name="check-circle" size={25} color="#4a90e2" />
-        </View>
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -256,6 +424,7 @@ const styles = StyleSheet.create({
   protext: {
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(21),
+    color: '#000',
   },
 
   dropdowncontainer: {
@@ -325,6 +494,7 @@ const styles = StyleSheet.create({
   lessonname: {
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(16),
+    color: '#000',
   },
   lessonnumber: {
     marginTop: hp('0.6%'),

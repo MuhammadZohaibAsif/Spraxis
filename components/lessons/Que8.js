@@ -7,17 +7,49 @@ import {
   Image,
   TextInput,
 } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
-
+import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Progress from 'react-native-progress';
-import { hp, moderateScale, wp } from '../src/utilis/responsive';
+import firestore from '@react-native-firebase/firestore';
+import { hp, moderateScale, wp } from '../../src/utilis/responsive';
 const Que8 = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  // ✅ Receive params from Que7
+  const { language, lessonId } = route.params || {};
+  const [englishSentence, setEnglishSentence] = useState('');
+
+  useEffect(() => {
+    if (!language || !lessonId) return;
+
+    const fetchSentence = async () => {
+      try {
+        const doc = await firestore()
+          .collection('languages')
+          .doc(language.toLowerCase())
+          .collection('lessons')
+          .doc(lessonId)
+          .get();
+
+        if (doc.exists) {
+          const data = doc.data();
+          setEnglishSentence(data?.sentence?.english || '');
+        }
+      } catch (error) {
+        console.log('Error fetching sentence:', error);
+      }
+    };
+
+    fetchSentence();
+  }, [language, lessonId]);
+
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
       <View style={styles.headercontainer}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon
             style={styles.icon}
             name="chevron-left"
@@ -27,8 +59,8 @@ const Que8 = () => {
         </TouchableOpacity>
         <View style={styles.container12}>
           <Progress.Bar
-            progress={16 / 20} 
-            width={220} 
+            progress={16 / 20}
+            width={220}
             height={13}
             color="#5A67D8"
             unfilledColor="#E2E8F0"
@@ -37,26 +69,54 @@ const Que8 = () => {
           />
           <Text style={styles.stepText}>16/20</Text>
         </View>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'BottomTabs' }],
+            })
+          }
+        >
           <Icon style={styles.icon} name="cross" size={26} color="#fff" />
         </TouchableOpacity>
       </View>
       <View style={styles.contentcontainer}>
-        <Text style={styles.toptext}>Convert this text into German</Text>
+        <Text style={styles.toptext}>Convert this text into {language}</Text>
         <View style={styles.imagecontainer}>
           <Image
             style={styles.boyimage}
-            source={require('../assets/boy.png')}
+            source={require('../../assets/boy.png')}
           />
-          <Text style={styles.questiontext}>hey Zohaib, Good Morning!</Text>
+          <View>
+            <Text style={styles.questiontext}>
+              {englishSentence || 'Loading...'}
+            </Text>
+            <View style={styles.dottedLine} />
+          </View>
         </View>
         <TextInput
-          keyboardType="visible-password"
           multiline={true}
           style={styles.textinput}
+          placeholder={`Write in ${language}`}
+          autoCorrect={true}
+          spellCheck={true}
+          textContentType="none"
+          keyboardType="default"
         />
+
+        <Text style={styles.keyboardHint}>
+          Please switch your keyboard to {language}.
+        </Text>
       </View>
-      <TouchableOpacity style={styles.nextbutton}>
+      <TouchableOpacity
+        style={styles.nextbutton}
+        onPress={() =>
+          navigation.navigate('FeaturedCourses', {
+            language,
+            lessonId,
+          })
+        }
+      >
         <Text style={styles.nexttext}>Submit</Text>
       </TouchableOpacity>
     </View>
@@ -100,6 +160,17 @@ const styles = StyleSheet.create({
     marginBottom: wp('5%'),
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(19),
+    color: '#000000',
+  },
+  dottedLine: {
+    opacity: 0.4,
+    borderBottomWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#000',
+    marginRight: wp('6%'),
+    marginTop: hp('-1.55'),
+    marginLeft: wp('4%'),
+    // alignSelf: 'flex-start',
   },
   imagecontainer: {
     marginTop: hp('1.5%'),
@@ -122,6 +193,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 14,
     borderTopRightRadius: 14,
     borderBottomRightRadius: 14,
+    color: '#000',
+    // opacity:0.8
   },
   textinput: {
     height: hp('15%'),
@@ -135,6 +208,13 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(16),
     color: '#000000c9',
     padding: wp('5%'),
+  },
+  keyboardHint: {
+    fontFamily: 'fredoka-Medium',
+    color: '#000',
+    opacity: 0.5,
+    marginHorizontal: wp('12%'),
+    marginTop: hp('1.5%'),
   },
   nextbutton: {
     alignItems: 'center',

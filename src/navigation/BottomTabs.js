@@ -84,6 +84,7 @@ const BottomTabs = () => {
 };
 
 export default BottomTabs;
+
 const styles = StyleSheet.create({
   activeTab: {
     flexDirection: 'row',

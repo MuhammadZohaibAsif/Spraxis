@@ -19,7 +19,8 @@ const Complete3 = () => {
   const { updateAnswer, answers } = useContext(UserAnswersContext);
   const [selected, setSelected] = useState(null);
 
-  const selectedLanguage = answers.learningLanguage || 'German';
+  // const selectedLanguage = answers.learningLanguage || 'German';
+  const selectedLanguage = answers.learningLanguages?.[0] || 'German';
 
   const options = [
     {
@@ -35,7 +36,6 @@ const Complete3 = () => {
 
   const handleNext = () => {
     if (!selected) return;
-
 
     updateAnswer(`${selectedLanguage.toLowerCase()}Level`, selected);
     navigation.navigate('Complete4');
