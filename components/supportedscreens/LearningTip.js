@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/Entypo';
 import { hp, moderateScale, wp } from '../../src/utilis/responsive';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
+import {uploadUrduLesson3 } from '../../src/firebaseUpload/uploadItalianLesson1';
 const LearningTip = () => {
   const navigation = useNavigation();
 
@@ -58,6 +59,8 @@ const LearningTip = () => {
             lessonId: lessonId,
           })
         }
+
+        // onPress={uploadUrduLesson3}
       >
         <Text style={styles.nexttext}>Got it!</Text>
       </TouchableOpacity>

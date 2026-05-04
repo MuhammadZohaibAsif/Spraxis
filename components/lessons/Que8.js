@@ -7,19 +7,33 @@ import {
   Image,
   TextInput,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Progress from 'react-native-progress';
 import firestore from '@react-native-firebase/firestore';
 import { hp, moderateScale, wp } from '../../src/utilis/responsive';
+import FeedbackSheet from '../supportedscreens/FeedbackSheet';
+import useFeedbackSound from '../../src/hooks/useFeedbackSound';
+import { initTts, speakWord } from '../../src/utilis/tts';
 const Que8 = () => {
+  useEffect(() => {
+    if (language) {
+      initTts(language);
+    }
+  }, [language]);
   const navigation = useNavigation();
   const route = useRoute();
 
   // ✅ Receive params from Que7
   const { language, lessonId } = route.params || {};
   const [englishSentence, setEnglishSentence] = useState('');
+  const [userInput, setUserInput] = useState('');
+  const [correctSentence, setCorrectSentence] = useState('');
+  const [showCorrectHint, setShowCorrectHint] = useState(false);
+
+  const feedbackRef = useRef(null);
+  const { playCorrect, playWrong } = useFeedbackSound();
 
   useEffect(() => {
     if (!language || !lessonId) return;
@@ -36,6 +50,7 @@ const Que8 = () => {
         if (doc.exists) {
           const data = doc.data();
           setEnglishSentence(data?.sentence?.english || '');
+          setCorrectSentence(data?.sentence?.[language.toLowerCase()] || '');
         }
       } catch (error) {
         console.log('Error fetching sentence:', error);
@@ -44,6 +59,22 @@ const Que8 = () => {
 
     fetchSentence();
   }, [language, lessonId]);
+
+  const handleSubmit = () => {
+    if (!userInput.trim()) return;
+
+    const isCorrect =
+      userInput.trim().toLowerCase() === correctSentence.trim().toLowerCase();
+
+    if (isCorrect) {
+      playCorrect(); // ✅ sound
+    } else {
+      playWrong(); // ✅ sound
+      setShowCorrectHint(true);
+    }
+
+    feedbackRef.current?.show(isCorrect ? 'correct' : 'wrong');
+  };
 
   return (
     <View style={styles.parentcontainer}>
@@ -88,9 +119,17 @@ const Que8 = () => {
             source={require('../../assets/boy.png')}
           />
           <View>
-            <Text style={styles.questiontext}>
+            {/* <Text style={styles.questiontext}>
               {englishSentence || 'Loading...'}
-            </Text>
+            </Text> */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => speakWord(englishSentence)}
+            >
+              <Text style={styles.questiontext}>
+                {englishSentence || 'Loading...'}
+              </Text>
+            </TouchableOpacity>
             <View style={styles.dottedLine} />
           </View>
         </View>
@@ -102,13 +141,17 @@ const Que8 = () => {
           spellCheck={true}
           textContentType="none"
           keyboardType="default"
+          value={userInput}
+          onChangeText={text => setUserInput(text)}
         />
 
         <Text style={styles.keyboardHint}>
-          Please switch your keyboard to {language}.
+          {showCorrectHint
+            ? correctSentence
+            : `Please switch your keyboard to ${language}.`}
         </Text>
       </View>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.nextbutton}
         onPress={() =>
           navigation.navigate('FeaturedCourses', {
@@ -118,7 +161,29 @@ const Que8 = () => {
         }
       >
         <Text style={styles.nexttext}>Submit</Text>
+      </TouchableOpacity> */}
+
+      <TouchableOpacity
+        style={[styles.nextbutton, { opacity: userInput.trim() ? 1 : 0.5 }]}
+        disabled={!userInput.trim()}
+        onPress={handleSubmit}
+      >
+        <Text style={styles.nexttext}>Submit</Text>
       </TouchableOpacity>
+
+      <FeedbackSheet
+        ref={feedbackRef}
+        onComplete={() => {
+          // Only move forward if correct
+          const isCorrect =
+            userInput.trim().toLowerCase() ===
+            correctSentence.trim().toLowerCase();
+
+          if (isCorrect) {
+            navigation.navigate('FeaturedCourses', { language, lessonId });
+          }
+        }}
+      />
     </View>
   );
 };

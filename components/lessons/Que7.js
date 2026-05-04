@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import FeedbackSheet from '../supportedscreens/FeedbackSheet';
+import React, { useState, useEffect, useRef } from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
 import Icon1 from 'react-native-vector-icons/AntDesign';
 import Icon2 from 'react-native-vector-icons/Entypo';
@@ -16,8 +17,15 @@ import * as Progress from 'react-native-progress';
 import { hp, moderateScale, wp } from '../../src/utilis/responsive';
 import firestore from '@react-native-firebase/firestore';
 import { useRoute } from '@react-navigation/native';
-
+import useFeedbackSound from '../../src/hooks/useFeedbackSound';
+import { initTts, speakWord } from '../../src/utilis/tts';
 const Que7 = () => {
+  useEffect(() => {
+    if (language) {
+      initTts(language);
+    }
+  }, [language]);
+
   const route = useRoute();
   const { language, lessonId } = route.params;
   const navigation = useNavigation();
@@ -25,6 +33,9 @@ const Que7 = () => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [options, setOptions] = useState([]);
   const [wordWidth, setWordWidth] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const feedbackRef = useRef(null);
+  const { playCorrect, playWrong } = useFeedbackSound();
 
   useEffect(() => {
     if (!lessonWords.length) return;
@@ -43,6 +54,10 @@ const Que7 = () => {
     );
 
     setOptions(allOptions);
+
+    ////////////////
+    setSelectedOption(null);
+    ///////////////
   }, [currentWordIndex, lessonWords]);
 
   useEffect(() => {
@@ -68,16 +83,18 @@ const Que7 = () => {
   }, [language, lessonId]);
 
   const handleSubmit = () => {
-    if (currentWordIndex < lessonWords.length - 1) {
-      // Show next word
-      setCurrentWordIndex(currentWordIndex + 1);
+    if (!selectedOption) return;
+
+    const correctAnswer = lessonWords[currentWordIndex]?.english;
+    const isCorrect = selectedOption === correctAnswer;
+
+    if (isCorrect) {
+      playCorrect();
     } else {
-      // All words done, go to Que8 and pass selected language and lesson
-      navigation.navigate('Que8', {
-        language,
-        lessonId,
-      });
+      playWrong();
     }
+
+    feedbackRef.current?.show(isCorrect ? 'correct' : 'wrong');
   };
 
   return (
@@ -120,7 +137,14 @@ const Que7 = () => {
         <View style={styles.topcontainer}>
           <Text style={styles.toptext}>Select the correct word</Text>
           <View style={styles.questioncontainer}>
-            <TouchableOpacity style={styles.soundiconview}>
+            <TouchableOpacity
+              style={styles.soundiconview}
+              onPress={() => {
+                const word =
+                  lessonWords[currentWordIndex]?.[language.toLowerCase()];
+                speakWord(word);
+              }}
+            >
               <Image
                 style={styles.volumeImage}
                 source={require('../../assets/icons/volumeLight.png')}
@@ -140,121 +164,71 @@ const Que7 = () => {
             </View>
           </View>
         </View>
-        {/* <View style={styles.parentoptionsview}>
-          <View style={styles.optionsview}>
-            <Text style={styles.germantext}>Goedemorgen</Text>
-            <View style={styles.lineview}>
-              <TouchableOpacity>
-                <Icon2
-                  style={styles.icon2}
-                  name="circle"
-                  size={26}
-                  color="#0000001e"
-                />
-              </TouchableOpacity>
-              <View style={styles.linestyling}></View>
-            </View>
-            <Text style={styles.englishtext}>Good Morning!</Text>
-          </View>
-          <View style={styles.optionsviewans}>
-            <Text style={styles.germantextans}>Hoi</Text>
-            <View style={styles.lineviewans}>
-              <TouchableOpacity>
-                <Icon3
-                  style={styles.icon2}
-                  name="checkmark-circle-sharp"
-                  size={28}
-                  color="#5BA890"
-                />
-              </TouchableOpacity>
-              <View style={styles.linestylingans}></View>
-            </View>
-            <Text style={styles.englishtextans}>Hello!</Text>
-          </View>
-          <View style={styles.optionsview}>
-            <Text style={styles.germantext}>Tot ziens</Text>
-            <View style={styles.lineview}>
-              <TouchableOpacity>
-                <Icon2
-                  style={styles.icon2}
-                  name="circle"
-                  size={26}
-                  color="#0000001e"
-                />
-              </TouchableOpacity>
-              <View style={styles.linestyling}></View>
-            </View>
-            <Text style={styles.englishtext}>Good bye!</Text>
-          </View>
-        </View> */}
+
         <View style={styles.parentoptionsview}>
-          {options.map((opt, idx) => (
-            <View
-              key={idx}
-              style={
-                opt === lessonWords[currentWordIndex]?.english
-                  ? styles.optionsviewans
-                  : styles.optionsview
-              }
-            >
-              <Text style={styles.germantext}>
-                {lessonWords[currentWordIndex]?.[language.toLowerCase()] || ''}{' '}
-              </Text>
-              <View
-                style={
-                  opt === lessonWords[currentWordIndex]?.english
-                    ? styles.lineviewans
-                    : styles.lineview
-                }
+          {options.map((opt, idx) => {
+            const isSelected = selectedOption === opt;
+
+            return (
+              <TouchableOpacity
+                key={idx}
+                activeOpacity={0.8}
+                onPress={() => setSelectedOption(opt)}
+                style={isSelected ? styles.optionsviewans : styles.optionsview}
               >
-                <TouchableOpacity>
-                  {opt === lessonWords[currentWordIndex]?.english ? (
+                <Text style={styles.germantext}>
+                  {lessonWords[currentWordIndex]?.[language.toLowerCase()] ||
+                    ''}
+                </Text>
+
+                <View style={isSelected ? styles.lineviewans : styles.lineview}>
+                  {isSelected ? (
                     <Icon3
-                      style={styles.icon2}
                       name="checkmark-circle-sharp"
                       size={28}
                       color="#5BA890"
                     />
                   ) : (
-                    <Icon2
-                      style={styles.icon2}
-                      name="circle"
-                      size={26}
-                      color="#0000001e"
-                    />
+                    <Icon2 name="circle" size={26} color="#0000001e" />
                   )}
-                </TouchableOpacity>
-                <View
+                  <View
+                    style={
+                      isSelected ? styles.linestylingans : styles.linestyling
+                    }
+                  />
+                </View>
+
+                <Text
                   style={
-                    opt === lessonWords[currentWordIndex]?.english
-                      ? styles.linestylingans
-                      : styles.linestyling
+                    isSelected ? styles.englishtextans : styles.englishtext
                   }
-                ></View>
-              </View>
-              <Text
-                style={
-                  opt === lessonWords[currentWordIndex]?.english
-                    ? styles.englishtextans
-                    : styles.englishtext
-                }
-              >
-                {opt}
-              </Text>
-            </View>
-          ))}
+                >
+                  {opt}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
       <TouchableOpacity
-        style={styles.nextbutton}
-        // onPress={() => navigation.navigate('Que8')}
-
+        style={[styles.nextbutton, { opacity: selectedOption ? 1 : 0.5 }]}
+        disabled={!selectedOption}
         onPress={handleSubmit}
-        // disabled={!selected}
       >
         <Text style={styles.nexttext}>Submit</Text>
       </TouchableOpacity>
+
+      <FeedbackSheet
+        ref={feedbackRef}
+        onComplete={() => {
+          if (currentWordIndex < lessonWords.length - 1) {
+            setCurrentWordIndex(prev => prev + 1);
+          } else {
+            navigation.navigate('Que8', { language, lessonId });
+          }
+        }}
+      />
     </View>
   );
 };

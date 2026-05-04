@@ -17,8 +17,7 @@ import { useGoal } from '../../src/context/GoalContext';
 const SetGoal3 = () => {
   const navigation = useNavigation();
   const { goalData, updateGoal } = useGoal();
-  const selectedOption = goalData.dailyMinutes; // pehle yeh useState me tha
-
+  const selectedOption = goalData.dailyMinutes; 
   const options = [
     {
       key: '5',

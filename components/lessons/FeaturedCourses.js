@@ -5,15 +5,31 @@ import {
   Text,
   View,
   Image,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Progress from 'react-native-progress';
 import Icon from 'react-native-vector-icons/Entypo';
 import { hp, moderateScale, wp } from '../../src/utilis/responsive';
-
+import FeedbackSheet from '../supportedscreens/FeedbackSheet';
+import useFeedbackSound from '../../src/hooks/useFeedbackSound';
+import {
+  initTts,
+  speakWord,
+  speakAndThen,
+  cleanForSpeech,
+} from '../../src/utilis/tts';
+import { KeyboardAvoidingView, Platform } from 'react-native';
 const FeaturedCourses = () => {
+  useEffect(() => {
+    if (language) {
+      initTts(language);
+    }
+  }, [language]);
+
   const navigation = useNavigation();
   const route = useRoute();
   const [questionSentence, setQuestionSentence] = useState('');
@@ -27,11 +43,15 @@ const FeaturedCourses = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [lessonWords, setLessonWords] = useState([]);
+  const [isLocked, setIsLocked] = useState(false);
 
+  const feedbackRef = useRef(null);
   const MIN_QUIZ_COUNT = 2;
   const shuffleArray = array => {
     return array.sort(() => Math.random() - 0.5);
   };
+
+  const { playCorrect, playWrong } = useFeedbackSound();
 
   const isCJKLanguage = lang =>
     ['chinese', 'japanese', 'korean'].includes(lang);
@@ -62,16 +82,12 @@ const FeaturedCourses = () => {
 
         let sentenceUnits = [];
 
-        // ✅ CJK → characters
         if (isCJKLanguage(langKey)) {
           sentenceUnits = [...sentence];
-        }
-        // ✅ Space-based → words
-        else {
+        } else {
           sentenceUnits = sentence.split(' ').filter(Boolean);
         }
 
-        // Pick MINIMUM 2 unique quiz words
         const shuffled = shuffleArray([...sentenceUnits]);
         const selectedQuizWords = shuffled.slice(
           0,
@@ -91,103 +107,6 @@ const FeaturedCourses = () => {
     fetchSentence();
   }, [language, lessonId]);
 
-  // const generateQuizStep = (sentence, correctWord, wordsArray, langKey) => {
-  //   let display = '';
-
-  //   if (isCJKLanguage(langKey)) {
-  //     const chars = [...sentence];
-  //     const index = chars.indexOf(correctWord);
-  //     if (index !== -1) {
-  //       chars[index] = '________';
-  //     }
-  //     display = chars.join('');
-  //   } else {
-  //     const words = sentence.split(' ');
-  //     if (index !== -1) {
-  //       words[index] = '________';
-  //     }
-  //     display = words.join(' ');
-  //   }
-
-  //   setBlankWord(correctWord);
-  //   setDisplaySentence(display);
-
-  //   const wrongOptions = wordsArray
-  //     .map(item => item[langKey])
-  //     .filter(word => word !== correctWord)
-  //     .sort(() => 0.5 - Math.random())
-  //     .slice(0, 5);
-
-  //   setOptions(shuffleArray([correctWord, ...wrongOptions]));
-  //   setSelectedOption(null);
-  //   setIsCorrect(null);
-  // };
-
-  // useEffect(() => {
-  //   if (!language || !lessonId) return;
-
-  //   const fetchSentence = async () => {
-  //     try {
-  //       const langKey = language.toLowerCase().trim();
-
-  //       const doc = await firestore()
-  //         .collection('languages')
-  //         .doc(langKey)
-  //         .collection('lessons')
-  //         .doc(lessonId)
-  //         .get();
-
-  //       if (!doc.exists) return;
-
-  //       const data = doc.data();
-  //       const sentence = data?.sentence?.[langKey] || '';
-  //       const wordsArray = data?.words || [];
-
-  //       setQuestionSentence(sentence);
-
-  //       let correctWord = '';
-  //       let display = '';
-
-  //       // ✅ CJK
-  //       if (isCJKLanguage(langKey)) {
-  //         const chars = [...sentence];
-  //         const randomIndex = getRandomIndex(chars.length);
-  //         correctWord = chars[randomIndex];
-  //         chars[randomIndex] = '________';
-  //         display = chars.join('');
-  //       }
-
-  //       // ✅ Space-based
-  //       else {
-  //         const words = sentence.split(' ');
-  //         const randomIndex = getRandomIndex(words.length);
-  //         correctWord = words[randomIndex];
-  //         words[randomIndex] = '________';
-  //         display = words.join(' ');
-  //       }
-
-  //       setBlankWord(correctWord);
-  //       setDisplaySentence(display);
-
-  //       // ✅ OPTIONS GENERATION (KEY PART)
-  //       const correctOption = correctWord;
-
-  //       const wrongOptions = wordsArray
-  //         .map(item => item[langKey]) // get target language words
-  //         .filter(word => word !== correctOption)
-  //         .sort(() => 0.5 - Math.random())
-  //         .slice(0, 5);
-
-  //       const finalOptions = shuffleArray([correctOption, ...wrongOptions]);
-
-  //       setOptions(finalOptions);
-  //     } catch (error) {
-  //       console.log('Error:', error);
-  //     }
-  //   };
-
-  //   fetchSentence();
-  // }, [language, lessonId]);
   const generateQuizStep = (sentence, correctWord, wordsArray, langKey) => {
     let display = '';
 
@@ -223,159 +142,197 @@ const FeaturedCourses = () => {
     setOptions(shuffleArray([correctWord, ...wrongOptions]));
     setSelectedOption(null);
     setIsCorrect(null);
+    setIsLocked(false);
+  };
+
+  const handleOptionPress = option => {
+    if (isLocked) return;
+
+    setSelectedOption(option);
+
+    const correct = option === blankWord;
+
+    speakAndThen(option, () => {
+      if (correct) {
+        playCorrect();
+        setIsLocked(true);
+        setCorrectCount(prev => prev + 1);
+
+        feedbackRef.current?.show('correct');
+
+        const nextIndex = currentIndex + 1;
+
+        setTimeout(() => {
+          if (nextIndex < quizWords.length) {
+            setCurrentIndex(nextIndex);
+            generateQuizStep(
+              questionSentence,
+              quizWords[nextIndex],
+              lessonWords,
+              language.toLowerCase(),
+            );
+          }
+        }, 800);
+      } else {
+        playWrong();
+        feedbackRef.current?.show('wrong');
+      }
+    });
   };
 
   const progressValue =
     quizWords.length > 0 ? correctCount / quizWords.length : 0;
 
   return (
-    <View style={styles.parentcontainer}>
-      <StatusBar hidden={true} />
-      <View style={styles.contentcontainer}>
-        <View style={styles.headercontainer}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Icon
-              style={styles.icon}
-              name="chevron-left"
-              size={26}
-              color="#fff"
-            />
-          </TouchableOpacity>
-          <View style={styles.container}>
-            <Progress.Bar
-              progress={progressValue}
-              width={220}
-              height={13}
-              color="#5A67D8"
-              unfilledColor="#E2E8F0"
-              borderWidth={1}
-              borderRadius={8}
-            />
-            <Text style={styles.stepText}>
-              {quizWords.length > 0
-                ? `${correctCount}/${quizWords.length}`
-                : '0/0'}
-            </Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.parentcontainer}>
+          <StatusBar hidden={true} />
+          <View style={styles.contentcontainer}>
+            <View style={styles.headercontainer}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Icon
+                  style={styles.icon}
+                  name="chevron-left"
+                  size={26}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+              <View style={styles.container}>
+                <Progress.Bar
+                  progress={progressValue}
+                  width={220}
+                  height={13}
+                  color="#5A67D8"
+                  unfilledColor="#E2E8F0"
+                  borderWidth={1}
+                  borderRadius={8}
+                />
+                <Text style={styles.stepText}>
+                  {quizWords.length > 0
+                    ? `${correctCount}/${quizWords.length}`
+                    : '0/0'}
+                </Text>
+              </View>
+
+              {/* Step Text */}
+
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'BottomTabs' }],
+                  })
+                }
+              >
+                <Icon style={styles.icon} name="cross" size={26} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.computercontainer}>
+              <Image
+                style={styles.computer}
+                source={require('../../assets/computer.png')}
+              />
+
+              <Text style={styles.boldtext}>Grammar Quiz:</Text>
+              <Text style={styles.boldtext}>Present Tense</Text>
+              <Text style={styles.fillthegaps}>Fill in the gaps</Text>
+            </View>
+
+            <View style={styles.completethesentencecontainer}>
+              <Text style={styles.completethesentence}>
+                Complete The Sentence
+              </Text>
+              <Text style={styles.fillthegaps2}>
+                Fill in the blanks with an appropriate present tence form.
+              </Text>
+              <View style={styles.questioncontainer}>
+                {/* <Text style={styles.questiontext}>
+              {displaySentence || 'Loading...'}
+            </Text> */}
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => speakWord(cleanForSpeech(displaySentence))}
+                >
+                  <Text style={styles.questiontext}>
+                    {displaySentence || 'Loading...'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.mainoptionscontainer}>
+              {options.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.suboptionscontainer,
+                    selectedOption === option && {
+                      borderColor: option === blankWord ? 'green' : 'red',
+                    },
+                  ]}
+                  onPress={() => handleOptionPress(option)}
+                  // onPress={() => {
+                  //   setSelectedOption(option);
+
+                  //   if (option === blankWord) {
+                  //     const newCorrect = correctCount + 1;
+                  //     setCorrectCount(newCorrect);
+                  //     setIsCorrect(true);
+
+                  //     setTimeout(() => {
+                  //       const nextIndex = currentIndex + 1;
+
+                  //       if (nextIndex < quizWords.length) {
+                  //         setCurrentIndex(nextIndex);
+                  //         generateQuizStep(
+                  //           questionSentence,
+                  //           quizWords[nextIndex],
+                  //           lessonWords,
+                  //           language.toLowerCase(),
+                  //         );
+                  //       }
+                  //     }, 700);
+                  //   } else {
+                  //     setIsCorrect(false);
+                  //   }
+                  // }}
+                >
+                  <Text style={styles.optiontext}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-
-          {/* Step Text */}
-
           <TouchableOpacity
+            // style={[styles.nextbutton]}
+            style={[
+              styles.nextbutton,
+              { opacity: correctCount === quizWords.length ? 1 : 0.5 },
+            ]}
+            disabled={correctCount !== quizWords.length}
             onPress={() =>
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'BottomTabs' }],
+              navigation.navigate('LessonCompleted', {
+                language,
+                lessonId,
               })
             }
           >
-            <Icon style={styles.icon} name="cross" size={26} color="#fff" />
+            <Text style={styles.nexttext}>Next</Text>
           </TouchableOpacity>
-        </View>
 
-        <View style={styles.computercontainer}>
-          <Image
-            style={styles.computer}
-            source={require('../../assets/computer.png')}
+          <FeedbackSheet
+            ref={feedbackRef}
+            onComplete={() => {
+              // No extra navigation; handled in option press
+            }}
           />
-
-          <Text style={styles.boldtext}>Grammar Quiz:</Text>
-          <Text style={styles.boldtext}>Present Tense</Text>
-          <Text style={styles.fillthegaps}>Fill in the gaps</Text>
         </View>
-
-        <View style={styles.completethesentencecontainer}>
-          <Text style={styles.completethesentence}>Complete The Sentence</Text>
-          <Text style={styles.fillthegaps2}>
-            Fill in the blanks with an appropriate present tence form.
-          </Text>
-          <View style={styles.questioncontainer}>
-            <Text style={styles.questiontext}>
-              {displaySentence || 'Loading...'}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.mainoptionscontainer}>
-          {options.map((option, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.suboptionscontainer,
-                selectedOption === option && {
-                  borderColor: option === blankWord ? 'green' : 'red',
-                },
-              ]}
-              // onPress={() => {
-              //   setSelectedOption(option);
-              //   setIsCorrect(option === blankWord);
-              // }}
-              onPress={() => {
-                setSelectedOption(option);
-
-                if (option === blankWord) {
-                  const newCorrect = correctCount + 1;
-                  setCorrectCount(newCorrect);
-                  setIsCorrect(true);
-
-                  setTimeout(() => {
-                    const nextIndex = currentIndex + 1;
-
-                    if (nextIndex < quizWords.length) {
-                      setCurrentIndex(nextIndex);
-                      generateQuizStep(
-                        questionSentence,
-                        quizWords[nextIndex],
-                        lessonWords,
-                        language.toLowerCase(),
-                      );
-                    }
-                  }, 700);
-                } else {
-                  setIsCorrect(false);
-                }
-              }}
-            >
-              <Text style={styles.optiontext}>{option}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* <View style={styles.mainoptionscontainer}>
-          <TouchableOpacity style={styles.suboptionscontainer}>
-            <Text style={styles.optiontext}>will go</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.suboptionscontainer}>
-            <Text style={styles.optiontext}>are going</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.suboptionscontainer}>
-            <Text style={styles.optiontext}>go</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.suboptionscontainer}>
-            <Text style={styles.optiontext}>can go</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.suboptionscontainer}>
-            <Text style={styles.optiontext}>is going</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.suboptionscontainer}>
-            <Text style={styles.optiontext}>going to</Text>
-          </TouchableOpacity>
-        </View> */}
-      </View>
-      <TouchableOpacity
-        style={[
-          styles.nextbutton,
-          // { opacity: correctCount === quizWords.length ? 1 : 0.5 },
-        ]}
-        disabled={correctCount !== quizWords.length}
-        onPress={() =>
-          navigation.navigate('LessonCompleted', {
-            language,
-            lessonId,
-          })
-        }
-      >
-        <Text style={styles.nexttext}>Next</Text>
-      </TouchableOpacity>
-    </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -483,8 +440,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: hp('2%'),
     marginHorizontal: wp('7.5%'),
-    marginTop: hp('2.3%'),
-    marginBottom: hp('4.3%'),
+    marginBottom: Platform.OS === 'ios' ? hp('3%') : hp('2%'),
   },
   nexttext: {
     color: '#ffffff',

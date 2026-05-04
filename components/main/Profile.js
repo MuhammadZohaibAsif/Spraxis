@@ -3,6 +3,8 @@ import {
   StyleSheet,
   Text,
   View,
+  Modal,
+  FlatList,
   Image,
   TouchableOpacity,
 } from 'react-native';
@@ -14,6 +16,11 @@ import React, { useEffect, useState } from 'react';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
+import {
+  fetchAvailableLanguages,
+  addLanguageToUser,
+} from '../../src/services/languageService';
+import Toast from 'react-native-toast-message';
 
 /////////////////////////////
 
@@ -21,34 +28,150 @@ const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [createdAt, setCreatedAt] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [availableLanguages, setAvailableLanguages] = useState([]);
+  const [learningLanguages, setLearningLanguages] = useState([]);
+
   const navigation = useNavigation();
+
+  // useEffect(() => {
+  //   const fetchProfile = async () => {
+  //     const currentUser = auth().currentUser;
+  //     if (currentUser) {
+  //       try {
+  //         const doc = await firestore()
+  //           .collection('users')
+  //           .doc(currentUser.uid)
+  //           .get();
+
+  //         if (doc.exists) {
+  //           const data = doc.data();
+  //           setProfile(data.profile);
+  //           setCreatedAt(data.createdAt); // ye root level timestamp
+  //         }
+  //       } catch (error) {
+  //         console.log('Error fetching profile:', error);
+  //       }
+  //     }
+  //     setLoading(false);
+  //   };
+
+  //   fetchProfile();
+  // }, []);
+
+  // const handleAddLanguage = async item => {
+  //   const currentUser = auth().currentUser;
+  //   if (!currentUser) return;
+
+  //   try {
+  //     const updatedLanguages = await addLanguageToUser(
+  //       currentUser.uid,
+  //       item.name,
+  //     );
+
+  //     if (updatedLanguages) {
+  //       setLearningLanguages(updatedLanguages);
+  //     }
+
+  //     setIsModalVisible(false);
+  //   } catch (error) {
+  //     console.log('Error adding language:', error);
+  //   }
+  // };
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      const currentUser = auth().currentUser;
-      if (currentUser) {
-        try {
-          const doc = await firestore()
-            .collection('users')
-            .doc(currentUser.uid)
-            .get();
+    const currentUser = auth().currentUser;
+    if (!currentUser) return;
 
-          if (doc.exists) {
-            const data = doc.data();
-            setProfile(data.profile);
-            setCreatedAt(data.createdAt); // ye root level timestamp
-          }
-        } catch (error) {
-          console.log('Error fetching profile:', error);
+    const unsubscribe = firestore()
+      .collection('users')
+      .doc(currentUser.uid)
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          setProfile(data.profile); // <- updated profile
+          setCreatedAt(data.createdAt);
+          setLearningLanguages(data.profile?.learningLanguages || []);
         }
-      }
-      setLoading(false);
-    };
+        setLoading(false);
+      });
 
-    fetchProfile();
+    return unsubscribe;
   }, []);
+
+  const handleAddLanguage = async item => {
+    const currentUser = auth().currentUser;
+    if (!currentUser) return;
+
+    try {
+      const updatedLanguages = await addLanguageToUser(
+        currentUser.uid,
+        item.name,
+      );
+
+      if (updatedLanguages) {
+        setLearningLanguages(updatedLanguages);
+
+        // ✅ SUCCESS TOAST
+        Toast.show({
+          type: 'success',
+          text1: 'Language added successfully',
+          text2: 'Start learning from the Home screen.',
+          position: 'bottom',
+          visibilityTime: 2500,
+        });
+      }
+
+      setIsModalVisible(false);
+    } catch (error) {
+      console.log('Error adding language:', error);
+
+      // ❌ ERROR TOAST (optional but recommended)
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong',
+        text2: 'Please try again.',
+      });
+    }
+  };
 
   return (
     <View style={styles.parentcontainer}>
+      {/* ===== Add Language Modal ===== */}
+      <Modal
+        visible={isModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalTitle}>
+              <Text style={styles.modalTitletext}>Select a Language</Text>
+            </View>
+            <FlatList
+              data={availableLanguages}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.languageItem}
+                  onPress={() => handleAddLanguage(item)}
+                >
+                  <Text style={styles.languageText}>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setIsModalVisible(false)}
+            >
+              <Text style={styles.modalCloseText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <StatusBar hidden={true} />
       <View style={styles.headercontainer}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -90,7 +213,14 @@ const Profile = () => {
                 year: 'numeric',
               })}`}
         </Text>
-        <TouchableOpacity style={styles.addlanguagecontainer}>
+        <TouchableOpacity
+          style={styles.addlanguagecontainer}
+          onPress={async () => {
+            const langs = await fetchAvailableLanguages();
+            setAvailableLanguages(langs);
+            setIsModalVisible(true);
+          }}
+        >
           <Text style={styles.addlanguagetext}>Add Language +</Text>
         </TouchableOpacity>
         <Text style={styles.dottext}>
@@ -101,7 +231,7 @@ const Profile = () => {
       <View style={styles.myactivitycontainer}>
         <Text style={styles.myactivitytext}>My Activity</Text>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Activity')}>
           <Text style={styles.viewalltext}>View All</Text>
         </TouchableOpacity>
       </View>
@@ -324,5 +454,59 @@ const styles = StyleSheet.create({
     fontFamily: 'fredoka-Medium',
     fontSize: moderateScale(14),
     opacity: 0.6,
+  },
+
+  // =================modal styling ================
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: wp('90%'),
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    maxHeight: hp('95%'),
+  },
+  modalTitle: {
+    alignItems: 'center',
+    marginBottom: 10,
+    backgroundColor: '#5A67D8', //'#5B7BFE',
+    paddingVertical: hp('1.5%'),
+    borderRadius: 14,
+    elevation: 16,
+  },
+  modalTitletext: {
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: 18,
+    fontFamily: 'fredoka-Medium',
+  },
+  languageItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  languageText: {
+    fontSize: 19,
+    fontFamily: 'fredoka-Medium',
+    color: '#000000aa',
+  },
+  modalCloseButton: {
+    elevation: 3,
+    marginTop: 15,
+    backgroundColor: '#5A67D8',
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  modalCloseText: {
+    color: '#fff',
+    textAlign: 'center',
+    // fontWeight: 'bold',
+    fontSize: 18,
+    fontFamily: 'fredoka-Medium',
   },
 });

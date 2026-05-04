@@ -35,6 +35,11 @@ import SetGoal3 from '../../components/goals/SetGoal3';
 import SetGoal4 from '../../components/goals/SetGoal4';
 import SetGoal5 from '../../components/goals/SetGoal5';
 import Settings from '../../components/main/Settings';
+import Activity from '../../components/main/Activity';
+import InviteFriend from '../../components/supportedscreens/InviteFriend';
+import ChatBotScreen from '../../components/main/ChatBotScreen';
+import PronunciationScreen from '../../components/main/PronunciationScreen';
+import TestObjectRecognition from '../screens/TestObjectRecognition';
 
 const Stack = createNativeStackNavigator();
 
@@ -96,8 +101,8 @@ const AppNavigator = () => {
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       const seen = await AsyncStorage.getItem('hasSeenOnboarding');
-      // setHasSeenOnboarding(seen === 'false');
-      setHasSeenOnboarding(seen === 'true');
+      setHasSeenOnboarding(seen === 'false');
+      // setHasSeenOnboarding(seen === 'true');
     };
     checkOnboardingStatus();
   }, []);
@@ -121,10 +126,22 @@ const AppNavigator = () => {
           {/* Main App */}
           <Stack.Screen name="BottomTabs" component={BottomTabs} />
           <Stack.Screen name="Settings" component={Settings} />
+          <Stack.Screen name="InviteFriend" component={InviteFriend} />
+          {/* Activity Screen */}
+          <Stack.Screen name="Activity" component={Activity} />
           {/* Learning Flow */}
           <Stack.Screen name="LearningStack" component={LearningStack} />
           {/* Goals Flow */}
           <Stack.Screen name="GoalsStack" component={GoalsStack} />
+          <Stack.Screen name="ChatBotScreen" component={ChatBotScreen} />
+          <Stack.Screen
+            name="PronunciationScreen"
+            component={PronunciationScreen}
+          />
+          <Stack.Screen
+            name="TestObjectRecognition"
+            component={TestObjectRecognition}
+          />
         </Stack.Navigator>
       ) : hasSeenOnboarding ? (
         <Stack.Navigator screenOptions={{ headerShown: false }}>

@@ -10,16 +10,17 @@ import React, { useState } from 'react';
 import Icon1 from 'react-native-vector-icons/Ionicons';
 
 import Icon from 'react-native-vector-icons/Entypo';
-import { hp, moderateScale, wp } from '../src/utilis/responsive';
-import WeeklyChartGifted from './WeeklyChartGifted';
-
+import { hp, moderateScale, wp } from '../../src/utilis/responsive';
+import WeeklyChartGifted from '../progress/WeeklyChartGifted';
+import { useNavigation } from '@react-navigation/native';
 const Activity = () => {
+    const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState('Weekly');
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
       <View style={styles.headercontainer}>
-        <TouchableOpacity>
+        <TouchableOpacity  onPress={() => navigation.goBack()}>
           <Icon
             style={styles.icon}
             name="chevron-left"
@@ -28,7 +29,7 @@ const Activity = () => {
           />
         </TouchableOpacity>
         <Text style={styles.headertext}>Activity</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
           <Icon1
             style={styles.icon}
             name="settings-outline"
@@ -61,7 +62,7 @@ const Activity = () => {
         <TouchableOpacity>
           <Image
             style={styles.dots}
-            source={require('../assets/icons/dots.png')}
+            source={require('../../assets/icons/dots.png')}
           />
         </TouchableOpacity>
       </View>
@@ -70,7 +71,7 @@ const Activity = () => {
           <View style={styles.imagecontainer}>
             <Image
               style={styles.imagestyling}
-              source={require('../assets/icons//clock.png')}
+              source={require('../../assets/icons//clock.png')}
             />
           </View>
           <View>
@@ -83,7 +84,7 @@ const Activity = () => {
           <View style={styles.imagecontainer}>
             <Image
               style={styles.imagestyling1}
-              source={require('../assets/icons//star.png')}
+              source={require('../../assets/icons//star.png')}
             />
           </View>
           <View>

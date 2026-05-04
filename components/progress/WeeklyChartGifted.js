@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
-import { hp, moderateScale, wp } from '../src/utilis/responsive';
+import { hp, moderateScale, wp } from '../../src/utilis/responsive';
 
 const { width } = Dimensions.get('window');
 

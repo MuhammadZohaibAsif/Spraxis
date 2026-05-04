@@ -112,9 +112,9 @@ const Progress = () => {
   const barData = buildBarData();
 
   const MAX_VALUES = {
-    week: 5, // max 5 lessons/day
-    month: 20, // max 20 lessons/day
-    year: 60, // max 60 lessons/month
+    week: 1, // max 5 lessons/day
+    month: 5, // max 20 lessons/day
+    year: 10, // max 60 lessons/month
   };
 
   // const maxValue = MAX_VALUES[timeline];

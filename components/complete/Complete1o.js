@@ -14,7 +14,8 @@ import { hp, moderateScale, wp } from '../../src/utilis/responsive';
 import { useNavigation } from '@react-navigation/native';
 import { UserAnswersContext } from '../../src/context/UserAnswersContext';
 import firestore from '@react-native-firebase/firestore';
-
+import { addLanguageToUser } from '../../src/services/languageService';
+import auth from '@react-native-firebase/auth';
 const Complete1o = () => {
   const navigation = useNavigation();
   const { updateAnswer } = useContext(UserAnswersContext);
@@ -44,16 +45,21 @@ const Complete1o = () => {
   //   updateAnswer('learningLanguage', selected);
   //   navigation.navigate('Complete2');
   // };
+  // const handleNext = () => {
+  //   if (!selected) return;
+
+  //   // Save selected language in context for later (after account creation)
+  //   updateAnswer('learningLanguages', [selected]); // store as array
+
+  //   // Navigate to next screen
+  //   navigation.navigate('Complete2');
+  // };
   const handleNext = () => {
     if (!selected) return;
 
-    // Save selected language in context for later (after account creation)
-    updateAnswer('learningLanguages', [selected]); // store as array
-
-    // Navigate to next screen
+    updateAnswer('learningLanguages', [selected]);
     navigation.navigate('Complete2');
   };
-
   if (loading) {
     return (
       <View

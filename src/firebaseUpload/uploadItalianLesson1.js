@@ -1,21 +1,25 @@
-// src/firebaseUpload/uploadUrduLesson1.js
+// src/firebaseUpload/uploadUrduLesson3.js
 
 import firestore from '@react-native-firebase/firestore';
 
-export async function uploadUrduLesson1() {
+export async function uploadUrduLesson3() {
   const lessonData = {
     sentence: {
-      title: 'Greetings',
-      english: 'Good morning, I want to learn Urdu.',
-      urdu: 'صبح بخیر، میں اردو سیکھنا چاہتا ہوں۔',
+      title: 'Coffee Shop Conversation', // keep English title
+      english: 'Hello, I would like a coffee, please. Do you want sugar or milk? Just milk, thank you.',
+      urdu: 'ہیلو، میں ایک کافی لینا چاہتا ہوں، براہِ مہربانی۔ کیا آپ چینی یا دودھ چاہتے ہیں؟ صرف دودھ، شکریہ۔',
     },
     words: [
-      { english: 'Good', urdu: 'اچھا' },
-      { english: 'Morning', urdu: 'صبح' },
-      { english: 'I', urdu: 'میں' },
-      { english: 'want to', urdu: 'چاہتا ہوں' },
-      { english: 'learn', urdu: 'سیکھنا' },
-      { english: 'Urdu', urdu: 'اردو' },
+      { english: 'Hello', urdu: 'ہیلو' },
+      { english: 'I would like', urdu: 'میں چاہتا ہوں' },
+      { english: 'coffee', urdu: 'کافی' },
+      { english: 'please', urdu: 'براہِ مہربانی' },
+      { english: 'Do you want', urdu: 'کیا آپ چاہتے ہیں' },
+      { english: 'sugar', urdu: 'چینی' },
+      { english: 'or', urdu: 'یا' },
+      { english: 'milk', urdu: 'دودھ' },
+      { english: 'Just', urdu: 'صرف' },
+      { english: 'thank you', urdu: 'شکریہ' },
     ],
   };
 
@@ -24,11 +28,11 @@ export async function uploadUrduLesson1() {
       .collection('languages')
       .doc('urdu')
       .collection('lessons')
-      .doc('lesson1')
+      .doc('lesson3')
       .set(lessonData);
 
-    console.log('Urdu lesson1 uploaded successfully!');
+    console.log('Urdu lesson3 uploaded successfully!');
   } catch (error) {
-    console.error('Failed to upload Urdu lesson1:', error);
+    console.error('Failed to upload Urdu lesson3:', error);
   }
 }

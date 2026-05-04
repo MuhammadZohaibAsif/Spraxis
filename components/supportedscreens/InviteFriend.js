@@ -10,16 +10,32 @@ import {
 import React from 'react';
 import Icon from 'react-native-vector-icons/Entypo';
 import Icon1 from 'react-native-vector-icons/FontAwesome';
-
-import { hp, moderateScale, wp } from '../src/utilis/responsive';
+import { useNavigation } from '@react-navigation/native';
+import { hp, moderateScale, wp } from '../../src/utilis/responsive';
+import { Linking, Alert } from 'react-native';
 
 const InviteFriend = () => {
+  const navigation = useNavigation();
+  const inviteMessage =
+    'Hey! 👋 I am learning German on Spraxis. Join me and learn together 🚀\n\nDownload here:\nhttps://spraxis.app';
+  const inviteViaWhatsApp = async () => {
+    const url = `whatsapp://send?text=${encodeURIComponent(inviteMessage)}`;
+
+    const supported = await Linking.canOpenURL(url);
+
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      Alert.alert('WhatsApp not installed', 'Please install WhatsApp first.');
+    }
+  };
+
   return (
     <View style={styles.parentcontainer}>
       <StatusBar hidden={true} />
 
       <View style={styles.headercontainer}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon
             style={styles.icon}
             name="chevron-left"
@@ -32,16 +48,13 @@ const InviteFriend = () => {
       <View style={styles.congratsView}>
         <Image
           style={styles.congratsimage}
-          source={require('../assets/inviteafriend.png')}
+          source={require('../../assets/inviteafriend.png')}
         />
         <Text style={styles.congratstext}>Invite your Friend</Text>
         <Text style={styles.subcongratstext}>Learn together with friends </Text>
       </View>
-      <TouchableOpacity style={styles.nextbutton}>
-        <Icon1  style={styles.icon}
-            name="whatsapp"
-            size={26}
-            color="#fff"/>
+      <TouchableOpacity style={styles.nextbutton} onPress={inviteViaWhatsApp}>
+        <Icon1 style={styles.icon} name="whatsapp" size={26} color="#fff" />
         <Text style={styles.nexttext}>Whatsapp</Text>
       </TouchableOpacity>
     </View>
@@ -101,7 +114,7 @@ const styles = StyleSheet.create({
   },
   buttonsView: {},
   nextbutton: {
-    flexDirection:"row",
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#5B7BFE',
